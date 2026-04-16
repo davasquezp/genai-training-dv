@@ -25,7 +25,7 @@
               class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
               to="/interest"
             >
-              Register interest
+              I am a dancer
             </RouterLink>
             <RouterLink
               class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"

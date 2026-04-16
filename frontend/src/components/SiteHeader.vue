@@ -23,7 +23,7 @@
           class="rounded-xl bg-white/10 px-3 py-2 font-medium text-white ring-1 ring-white/15 hover:bg-white/15"
           to="/interest"
         >
-          Register interest
+          I am a dancer
         </RouterLink>
       </div>
     </nav>
