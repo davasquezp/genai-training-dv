@@ -16,6 +16,10 @@ src/main/java/com/dv/genaitraining/
 frontend/                    # Vue 3 + Vite web UI (dev server)
 ```
 
+## Docs (source of truth)
+
+Start here: [`docs/index.md`](docs/index.md)
+
 ## Build & test
 
 ```bash

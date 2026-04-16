@@ -1,0 +1,31 @@
+# Backlog (lean)
+
+Ordered roughly by “value / effort” for early-stage learning.
+
+## 1) Durable persistence for dancers
+- Replace in-memory repository with database-backed persistence (H2 → Postgres on Render).
+- Acceptance:
+  - submissions survive backend restart
+  - `GET /api/dancers` returns stored data
+
+## 2) Simple admin view in the UI
+- A minimal protected/hidden page that lists registered dancers and filters by country/style/role.
+
+## 3) Data hygiene
+- Prevent duplicates (same name + country + role + styles within a short window) or add “confirm submission” UX.
+
+## 4) Consent + privacy text
+- Add a short consent statement and a way to delete a submission (MVP-friendly).
+
+## 5) Analytics (minimal)
+- Track: page view, submit attempt, submit success/failure.
+
+## 6) Country normalization
+- Store ISO country code consistently; ensure UI and API align.
+
+## 7) API hardening
+- Standardize error payload shape across endpoints (ADR + implementation).
+
+## 8) Deployment hardening
+- Add smoke checks and clear logs for CORS/env var misconfiguration.
+
