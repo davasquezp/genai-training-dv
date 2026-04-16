@@ -29,6 +29,12 @@
             </RouterLink>
             <RouterLink
               class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
+              to="/communities/new"
+            >
+              Create a community
+            </RouterLink>
+            <RouterLink
+              class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
               to="/#features"
             >
               Explore features
@@ -146,6 +152,7 @@
         <div>© {{ new Date().getFullYear() }} LatinVibe</div>
         <div class="flex gap-4">
           <RouterLink class="hover:text-slate-200" to="/#features">Features</RouterLink>
+          <RouterLink class="hover:text-slate-200" to="/communities">Communities</RouterLink>
           <RouterLink class="hover:text-slate-200" to="/interest">Interest</RouterLink>
         </div>
       </div>

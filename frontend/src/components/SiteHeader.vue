@@ -18,6 +18,7 @@
         <RouterLink class="hover:text-white" to="/#features">Features</RouterLink>
         <RouterLink class="hover:text-white" to="/#how-it-works">How it works</RouterLink>
         <RouterLink class="hover:text-white" to="/interest">Interest</RouterLink>
+        <RouterLink class="hover:text-white" to="/communities">Communities</RouterLink>
         <RouterLink
           class="rounded-xl bg-white/10 px-3 py-2 font-medium text-white ring-1 ring-white/15 hover:bg-white/15"
           to="/interest"
