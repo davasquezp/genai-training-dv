@@ -24,6 +24,8 @@ const countryOpen = ref(false)
 const styles = ref<string[]>([])
 
 const submitted = ref(false)
+const submitError = ref<string>('')
+const submitting = ref(false)
 
 const nameError = computed(() => (name.value.trim().length === 0 ? 'Name is required.' : ''))
 const roleError = computed(() => (!role.value ? 'Please choose lead or follower.' : ''))
@@ -58,6 +60,32 @@ function clearCountry() {
 
 const STORAGE_KEY = 'latinVibe.interests'
 
+function apiBaseUrl(): string {
+  const raw = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
+  return raw && raw.length > 0 ? raw.replace(/\/+$/, '') : ''
+}
+
+async function postDancer(sub: InterestSubmission) {
+  const base = apiBaseUrl()
+  const url = `${base}/api/dancers`
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: sub.name,
+      role: sub.role,
+      country: sub.country,
+      styles: sub.styles,
+    }),
+  })
+
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '')
+    throw new Error(text || `Request failed: ${resp.status}`)
+  }
+}
+
 function saveSubmission(sub: InterestSubmission) {
   const raw = localStorage.getItem(STORAGE_KEY)
   const existing: InterestSubmission[] = raw ? JSON.parse(raw) : []
@@ -65,8 +93,10 @@ function saveSubmission(sub: InterestSubmission) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
 }
 
-function onSubmit() {
+async function onSubmit() {
   if (!canSubmit.value || !country.value || !role.value) return
+  submitError.value = ''
+  submitting.value = true
   const sub: InterestSubmission = {
     name: name.value.trim(),
     role: role.value,
@@ -74,8 +104,15 @@ function onSubmit() {
     styles: [...styles.value],
     createdAt: new Date().toISOString(),
   }
-  saveSubmission(sub)
-  submitted.value = true
+  try {
+    await postDancer(sub)
+    saveSubmission(sub)
+    submitted.value = true
+  } catch (e) {
+    submitError.value = e instanceof Error ? e.message : 'Could not submit. Please try again.'
+  } finally {
+    submitting.value = false
+  }
 }
 
 function onGlobalPointerDown(e: PointerEvent) {
@@ -131,6 +168,13 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
         </div>
 
         <form v-else class="mt-8 space-y-6" @submit.prevent="onSubmit">
+          <div
+            v-if="submitError"
+            class="rounded-xl bg-rose-500/10 p-4 text-sm text-rose-200 ring-1 ring-rose-400/20"
+          >
+            {{ submitError }}
+          </div>
+
           <div>
             <label class="block text-sm font-medium text-slate-200">Name</label>
             <input
@@ -238,9 +282,9 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
               class="w-full rounded-xl px-4 py-3 text-sm font-semibold transition"
               :class="canSubmit ? 'bg-white text-slate-900 hover:bg-slate-100' : 'bg-white/10 text-slate-300 ring-1 ring-white/10'"
               type="submit"
-              :disabled="!canSubmit"
+              :disabled="!canSubmit || submitting"
             >
-              Submit interest
+              {{ submitting ? 'Submitting…' : 'Submit interest' }}
             </button>
             <p class="mt-3 text-xs text-slate-400">
               Saved locally under <code class="rounded bg-white/10 px-1.5 py-0.5 text-slate-200">latinVibe.interests</code>.
