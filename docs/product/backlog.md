@@ -29,3 +29,7 @@ Ordered roughly by “value / effort” for early-stage learning.
 ## 8) Deployment hardening
 - Add smoke checks and clear logs for CORS/env var misconfiguration.
 
+## 9) Monetization foundations
+- Define community tiers (features + limits) and an upgrade path.
+- Add commission-based ticketing integration for events (festivals/workshops) once community core is validated.
+

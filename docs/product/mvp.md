@@ -1,7 +1,7 @@
 # MVP scope
 
 ## MVP goal
-Validate that dancers will register interest and that organizers can get actionable insights.
+Validate that dancers will register interest, communities can present themselves, and organizers can get actionable insights.
 
 ## In scope (MVP)
 - Public landing page + Interest form
@@ -29,11 +29,12 @@ Validate that dancers will register interest and that organizers can get actiona
 - Authentication / accounts
 - Matching algorithm
 - Messaging / chat
-- Payments
+- Payments (implementation)
 - Event scheduling
 
 ## Release criteria
-- A dancer can submit from the deployed Pages site and the backend accepts it without CORS errors
-- Submissions appear via `GET /api/dancers`
-- Swagger loads in production for debugging
+- A dancer can submit their interest and receives a clear confirmation that it was received.
+- Organizers can view registrations for a community/region to validate demand.
+- A community has a public landing page that shows its name, region, and communication links.
+- A community cannot exceed its configured tier limit for members.
 

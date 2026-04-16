@@ -22,11 +22,10 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 - Tiered communities: charge for creating communities with specific features/capabilities in a tiered manner.
 - Commission-based ticketing: take a commission via payment gateways for event ticketing such as festivals (including accommodation) or workshops.
 
-## Non-goals (MVP)
+## Secondary goals (MVP)
 - Full authentication / accounts
 - Matching algorithm
 - Messaging/chat
-- Payments (implementation)
 - Full event scheduling (may be linked as a related feature later)
 
 ## Target users

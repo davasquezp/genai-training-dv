@@ -11,6 +11,7 @@ This folder is the **single source of truth** for how we build and evolve this p
 ## Product (lean)
 - **Vision**: [`docs/product/vision.md`](product/vision.md)
 - **MVP scope**: [`docs/product/mvp.md`](product/mvp.md)
+- **PRD**: [`docs/product/prd.md`](product/prd.md)
 - **Backlog**: [`docs/product/backlog.md`](product/backlog.md)
 - **Metrics**: [`docs/product/metrics.md`](product/metrics.md)
 
