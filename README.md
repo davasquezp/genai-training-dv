@@ -11,14 +11,8 @@ Java 21 Maven starter using **Hexagonal Architecture (Ports & Adapters)** with:
 
 ```
 src/main/java/com/dv/genaitraining/
-  domain/                    # domain model (no framework dependencies)
-  application/
-    port/in/                 # inbound ports (use-cases)
-    port/out/                # outbound ports (driven)
-    service/                 # use-case implementations
-  adapters/
-    in/                      # inbound adapters (CLI/REST/etc)
-    out/                     # outbound adapters (persistence/http/etc)
+  features/                  # vertical slices (user, customer, ...)
+  shared/                    # cross-cutting config
 frontend/                    # Vue 3 + Vite web UI (dev server)
 ```
 
@@ -53,6 +47,13 @@ Open:
 - UI: `http://localhost:5173`
 - API: `http://localhost:8080`
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
+
+## Deploy backend to Render (Docker)
+
+This repo includes a root `Dockerfile` for the Spring Boot backend. Render will build and run it as a Docker Web Service.
+
+- **Render**: New → Web Service → pick repo → choose **Docker**
+- Render sets `PORT`; the container starts Spring Boot with `-Dserver.port=$PORT`.
 
 ### User CRUD endpoints
 
