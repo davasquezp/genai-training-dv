@@ -1,20 +1,26 @@
 # PRD: LatinVibe MVP (Interest + Communities)
 
 ## Summary
-LatinVibe MVP validates demand by collecting dancer interest and enabling communities to present themselves (landing page + links) with basic constraints (tiers/limits).
+LatinVibe MVP vision is to create a one-stop-shop for dancing communities globally. Goal is to link communitity events and local dancing actors with the dancers. Idea is to create a value proposition for dancers across the globe and monetize the activity with tiered capabilities as well as with commission based payments. 
 
 ## Goals
-- Capture dancer interest with minimal friction.
-- Allow a community (city/area) to exist with a simple landing page and communication links.
-- Provide organizers with basic visibility into registrations and communities.
-- Enable monetization for the dancing community via payments (tiered communities and paid offerings over time).
+### Capture dancer interest with minimal friction
 
-## Monetization (sub-goal)
-Build monetization opportunities into the product design while keeping the MVP focused.
+- Collect role + styles to understand demand per community/region.
 
-### Initial monetization sources
-- **Tiered communities**: charge for creating communities with specific features/capabilities in a tiered manner.
-- **Commission-based ticketing**: take a commission via payment gateways for event ticketing such as festivals (including accommodation) or workshops.
+### Enable communities (city/area) with landing pages and communication links
+
+- Publish community channels (WhatsApp/Email/Telegram/Instagram).
+- Surface related items (Events/Parties/Schools/Instructors) as links/associations.
+
+### Provide organizers with visibility into registrations and communities
+
+- Enable basic listing/insights to validate demand and growth.
+
+### Enable monetization for the dancing community via payments
+
+- Tiered communities: charge for creating communities with specific features/capabilities in a tiered manner.
+- Commission-based ticketing: take a commission via payment gateways for event ticketing such as festivals (including accommodation) or workshops.
 
 ## Non-goals (MVP)
 - Full authentication / accounts
@@ -70,17 +76,11 @@ Communities can be associated with related features such as:
 
 MVP requirement is to represent/link these (not to build full modules).
 
-## User stories (lean)
-- As a dancer, I can submit my interest with my role and styles.
-- As a community admin, I can create a community with region/name and publish my channel links.
-- As a dancer, I can be linked to communities I belong to.
-- As an admin, I can see submissions and communities in a basic listing to validate data flow.
-
 ## Acceptance criteria
-- Deployed UI can submit interest successfully to the backend.
-- Submissions are retrievable in an admin/debug listing.
-- Communities can be created and rendered as a landing page with channel links.
-- Tier limit enforcement prevents adding dancers beyond the configured max.
+- A dancer can submit their interest and receives a clear confirmation that it was received.
+- Organizers can view registrations for a community/region to validate demand.
+- A community has a public landing page that shows its name, region, and communication links.
+- A community cannot exceed its configured tier limit for members.
 
 ## Metrics
 - Registrations per week
