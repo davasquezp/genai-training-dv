@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/* Small global tweaks that complement Tailwind defaults. */
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+}
+

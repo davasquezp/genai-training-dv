@@ -1,3 +1,14 @@
+/target/
+/.idea/
+/.classpath
+/.project
+/.settings/
+/.m2/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+
 # Compiled class file
 *.class
 
