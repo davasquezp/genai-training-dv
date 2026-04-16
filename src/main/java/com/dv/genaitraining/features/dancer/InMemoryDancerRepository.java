@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,6 +26,11 @@ public class InMemoryDancerRepository implements DancerRepository {
     return byId.values().stream()
         .sorted(Comparator.comparing(Dancer::createdAt).reversed())
         .toList();
+  }
+
+  @Override
+  public Optional<Dancer> findById(DancerId id) {
+    return Optional.ofNullable(byId.get(id.value()));
   }
 }
 

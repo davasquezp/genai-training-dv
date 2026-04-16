@@ -153,6 +153,7 @@
         <div class="flex gap-4">
           <RouterLink class="hover:text-slate-200" to="/#features">Features</RouterLink>
           <RouterLink class="hover:text-slate-200" to="/communities">Communities</RouterLink>
+          <RouterLink class="hover:text-slate-200" to="/dancers">Dancers</RouterLink>
           <RouterLink class="hover:text-slate-200" to="/interest">Interest</RouterLink>
         </div>
       </div>

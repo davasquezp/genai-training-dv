@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue'
 
 import SiteHeader from '../components/SiteHeader.vue'
+import { RouterLink } from 'vue-router'
 import { COUNTRIES, type Country } from '../data/countries'
 
 type Role = 'lead' | 'follower'
@@ -287,14 +288,14 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
               {{ submitting ? 'Submitting…' : 'Submit interest' }}
             </button>
             <p class="mt-3 text-xs text-slate-400">
-              Saved locally under <code class="rounded bg-white/10 px-1.5 py-0.5 text-slate-200">latinVibe.interests</code>.
+              Saved to the backend (and locally for resilience).
             </p>
           </div>
         </form>
       </div>
 
       <div class="mt-6 text-center text-xs text-slate-400">
-        Want to see the API? <a class="hover:text-slate-200" href="http://localhost:8080/swagger-ui/index.html" target="_blank" rel="noreferrer">Swagger UI</a>
+        Data is saved to the backend. View the full list at <RouterLink to="/dancers" class="hover:text-white underline">/dancers</RouterLink>.
       </div>
     </section>
   </div>

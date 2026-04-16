@@ -48,9 +48,13 @@ npm run dev
 ```
 
 Open:
-- UI: `http://localhost:5173`
+- UI: `http://localhost:5173` (includes **/interest**, **/dancers**)
 - API: `http://localhost:8080`
 - Swagger: `http://localhost:8080/swagger-ui/index.html`
+
+**Dancer flow** is fully connected:
+- Submit interest → `POST /api/dancers`
+- View live list + profiles at `/dancers`
 
 ## Deploy backend to Render (Docker)
 

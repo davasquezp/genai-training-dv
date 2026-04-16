@@ -63,6 +63,8 @@ Most commonly: CORS origin mismatch.
 ### Frontend calls the wrong backend
 Confirm Cloudflare Pages has `VITE_API_BASE_URL` set to your Render URL.
 
+The dancer interest form and listing page now call the live `/api/dancers` endpoints.
+
 ### Swagger / health check
 - Swagger UI: `https://<render-host>/swagger-ui/index.html`
 - OpenAPI JSON: `https://<render-host>/v3/api-docs`

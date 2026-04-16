@@ -8,8 +8,10 @@ Ordered roughly by “value / effort” for early-stage learning.
   - submissions survive backend restart
   - `GET /api/dancers` returns stored data
 
-## 2) Simple admin view in the UI
-- A minimal protected/hidden page that lists registered dancers and filters by country/style/role.
+## 2) Simple admin view in the UI (done)
+- Dancers listing page (`/dancers`) connected to live `GET /api/dancers`
+- Searchable by name, country, role, and styles
+- Clickable cards lead to individual dancer profile pages
 
 ## 3) Data hygiene
 - Prevent duplicates (same name + country + role + styles within a short window) or add “confirm submission” UX.
