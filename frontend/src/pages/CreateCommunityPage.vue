@@ -15,6 +15,7 @@ type CommunityDraft = {
   id: string
   name: string
   description: string
+  imageDataUrl?: string
   global: boolean
   location?: CommunityLocation
   createdAt: string
@@ -33,6 +34,9 @@ const countryOpen = ref(false)
 const region = ref('')
 const city = ref('')
 
+const imageDataUrl = ref<string>('')
+const imageError = ref<string>('')
+
 const submitted = ref(false)
 const submitError = ref('')
 
@@ -49,7 +53,9 @@ const locationError = computed(() => {
   return ''
 })
 
-const canSubmit = computed(() => !nameError.value && !descriptionError.value && !locationError.value)
+const canSubmit = computed(
+  () => !nameError.value && !descriptionError.value && !locationError.value && !imageError.value,
+)
 
 const filteredCountries = computed(() => {
   const q = countryQuery.value.trim().toLowerCase()
@@ -92,6 +98,70 @@ function buildLocation(): CommunityLocation | undefined {
   return Object.keys(loc).length ? loc : undefined
 }
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(new Error('Could not read file'))
+    reader.onload = () => resolve(String(reader.result ?? ''))
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onerror = () => reject(new Error('Could not load image'))
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight })
+    img.src = dataUrl
+  })
+}
+
+async function onImageSelected(e: Event) {
+  const input = e.target as HTMLInputElement | null
+  const file = input?.files?.[0]
+  imageError.value = ''
+
+  if (!file) {
+    imageDataUrl.value = ''
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    imageError.value = 'Please select an image file.'
+    imageDataUrl.value = ''
+    return
+  }
+
+  // Keep it small to avoid bloating localStorage.
+  const maxBytes = 3 * 1024 * 1024
+  if (file.size > maxBytes) {
+    imageError.value = 'Image is too large. Please choose an image under 3MB.'
+    imageDataUrl.value = ''
+    return
+  }
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file)
+    const { width, height } = await loadImageDimensions(dataUrl)
+
+    if (width <= height) {
+      imageError.value = 'Please use a landscape image.'
+      imageDataUrl.value = ''
+      return
+    }
+
+    imageDataUrl.value = dataUrl
+  } catch (err) {
+    imageError.value = err instanceof Error ? err.message : 'Could not process image.'
+    imageDataUrl.value = ''
+  }
+}
+
+function removeImage() {
+  imageDataUrl.value = ''
+  imageError.value = ''
+}
+
 function onSubmit() {
   if (!canSubmit.value) return
   submitError.value = ''
@@ -100,6 +170,7 @@ function onSubmit() {
     id: newCommunityId(),
     name: name.value.trim(),
     description: description.value.trim(),
+    imageDataUrl: imageDataUrl.value || undefined,
     global: isGlobal.value,
     location: buildLocation(),
     createdAt: new Date().toISOString(),
@@ -190,6 +261,39 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
               placeholder="What is this community about?"
             />
             <p v-if="descriptionError" class="mt-2 text-xs text-rose-200">{{ descriptionError }}</p>
+          </div>
+
+          <div class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <div class="text-sm font-semibold text-white">Image</div>
+                <div class="mt-1 text-xs text-slate-300">Landscape image recommended (optional).</div>
+              </div>
+              <button
+                v-if="imageDataUrl"
+                type="button"
+                class="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
+                @click="removeImage"
+              >
+                Remove
+              </button>
+            </div>
+
+            <div v-if="imageDataUrl" class="mt-4 overflow-hidden rounded-2xl ring-1 ring-white/10">
+              <div class="relative w-full bg-slate-950/40" style="aspect-ratio: 4 / 3">
+                <img :src="imageDataUrl" alt="Community image preview" class="h-full w-full object-cover" />
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <input
+                type="file"
+                accept="image/*"
+                class="block w-full text-sm text-slate-200 file:mr-4 file:rounded-xl file:border-0 file:bg-white/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white file:ring-1 file:ring-white/15 hover:file:bg-white/15"
+                @change="onImageSelected"
+              />
+              <p v-if="imageError" class="mt-2 text-xs text-rose-200">{{ imageError }}</p>
+            </div>
           </div>
 
           <div class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10">

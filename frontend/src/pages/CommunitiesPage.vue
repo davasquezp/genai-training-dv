@@ -15,6 +15,7 @@ type CommunityDraft = {
   id: string
   name: string
   description: string
+  imageDataUrl?: string
   global: boolean
   location?: CommunityLocation
   createdAt: string
@@ -145,16 +146,37 @@ function refresh() {
             class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10"
           >
             <RouterLink class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/60" :to="`/communities/${c.id}`">
-              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <div class="text-sm font-semibold text-white">{{ c.name }}</div>
-                  <div class="mt-1 text-xs text-slate-300">{{ locationLabel(c) }}</div>
+              <div class="flex gap-4">
+                <div class="shrink-0">
+                  <div
+                    class="h-20 w-28 overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10"
+                    style="aspect-ratio: 4 / 3"
+                  >
+                    <img
+                      v-if="c.imageDataUrl"
+                      :src="c.imageDataUrl"
+                      alt=""
+                      class="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                    <div v-else class="grid h-full w-full place-items-center text-xs text-slate-400">No image</div>
+                  </div>
                 </div>
-                <div class="text-xs text-slate-400">Created {{ new Date(c.createdAt).toLocaleString() }}</div>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0">
+                      <div class="truncate text-sm font-semibold text-white">{{ c.name }}</div>
+                      <div class="mt-1 text-xs text-slate-300">{{ locationLabel(c) }}</div>
+                    </div>
+                    <div class="text-xs text-slate-400">Created {{ new Date(c.createdAt).toLocaleString() }}</div>
+                  </div>
+
+                  <p class="mt-3 line-clamp-3 text-sm text-slate-200 whitespace-pre-line">
+                    {{ c.description }}
+                  </p>
+                </div>
               </div>
-              <p class="mt-3 text-sm text-slate-200 whitespace-pre-line">
-                {{ c.description }}
-              </p>
               <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-slate-200">
                 View community
                 <span aria-hidden="true">→</span>

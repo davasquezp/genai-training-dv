@@ -15,6 +15,7 @@ type CommunityDraft = {
   id: string
   name: string
   description: string
+  imageDataUrl?: string
   global: boolean
   location?: CommunityLocation
   createdAt: string
@@ -136,6 +137,23 @@ const partySchedule = computed<PartySlot[]>(() => {
         </div>
 
         <div v-if="community" class="mt-6 space-y-6">
+          <div class="overflow-hidden rounded-2xl bg-slate-950/40 ring-1 ring-white/10">
+            <div class="relative w-full" style="aspect-ratio: 4 / 3">
+              <img
+                v-if="community.imageDataUrl"
+                :src="community.imageDataUrl"
+                alt=""
+                class="h-full w-full object-cover"
+              />
+              <div
+                v-else
+                class="grid h-full w-full place-items-center bg-gradient-to-br from-white/10 to-white/5 text-sm text-slate-200"
+              >
+                Community image (coming soon)
+              </div>
+            </div>
+          </div>
+
           <div class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10">
             <div class="text-sm font-semibold text-white">About</div>
             <p class="mt-2 whitespace-pre-line text-sm text-slate-200">{{ community.description }}</p>

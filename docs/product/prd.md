@@ -12,6 +12,7 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 
 - Publish community channels (WhatsApp/Email/Telegram/Instagram).
 - Surface related items (Events/Parties/Schools/Instructors) as links/associations.
+- Communities can be in created,activated, deactivated statuses.
 
 ### Provide organizers with visibility into registrations and communities
 
@@ -50,6 +51,7 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 - Has a **name**
 - Has a **region** (city/area)
 - Has **one or more admins**
+- Has a **cover image** (landscape 4:3 ratio)
 - Has a **landing page**
 - Can publish **communication links**:
   - WhatsApp
