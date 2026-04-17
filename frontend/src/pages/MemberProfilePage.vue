@@ -20,6 +20,32 @@
 
         <div v-else class="mt-6">
           <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
+            <div class="text-sm font-semibold text-white">Account</div>
+            <p class="mt-1 text-sm text-slate-200">Your login information.</p>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label class="block text-sm font-medium text-slate-200">Email</label>
+                <input
+                  :value="member?.email ?? ''"
+                  type="email"
+                  class="mt-2 w-full rounded-xl bg-slate-950/60 px-4 py-3 text-sm text-slate-300 ring-1 ring-white/10"
+                  readonly
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-200">Phone</label>
+                <input
+                  :value="member?.phone ?? ''"
+                  type="tel"
+                  class="mt-2 w-full rounded-xl bg-slate-950/60 px-4 py-3 text-sm text-slate-300 ring-1 ring-white/10"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-white/5 p-6 ring-1 ring-white/10">
             <div class="text-sm font-semibold text-white">Profile</div>
             <p class="mt-1 text-sm text-slate-200">Your account preferences and active roles.</p>
 
