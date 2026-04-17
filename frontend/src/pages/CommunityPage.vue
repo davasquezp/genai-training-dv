@@ -1,26 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
-import type { Country } from '../data/countries'
 import { authHeader, getCachedMember, hasRole, isAuthenticated } from '../features/member/auth'
-
-type CommunityLocation = {
-  country?: Country
-  region?: string
-  city?: string
-}
-
-type CommunityDraft = {
-  id: string
-  name: string
-  description: string
-  imageDataUrl?: string
-  global: boolean
-  location?: CommunityLocation
-  createdAt: string
-}
+import { getCommunity, type Community } from '../features/community/api'
 
 type MockEvent = {
   title: string
@@ -35,11 +19,31 @@ type PartySlot = {
   title: string
 }
 
-const STORAGE_KEY = 'latinVibe.communities'
-
 const route = useRoute()
 const communityId = computed(() => String(route.params.id ?? ''))
 const canJoinCommunity = computed(() => isAuthenticated() && hasRole('DANCER'))
+
+const loading = ref(false)
+const loadError = ref('')
+const community = ref<Community | null>(null)
+
+async function refresh() {
+  const id = communityId.value.trim()
+  if (!id) {
+    community.value = null
+    return
+  }
+  loadError.value = ''
+  loading.value = true
+  try {
+    community.value = await getCommunity(id)
+  } catch (e) {
+    loadError.value = e instanceof Error ? e.message : 'Could not load community.'
+    community.value = null
+  } finally {
+    loading.value = false
+  }
+}
 
 const joining = ref(false)
 const joinError = ref('')
@@ -54,8 +58,6 @@ async function joinCommunity() {
     return
   }
 
-  // Communities are currently stored in localStorage and their id is typically a UUID.
-  // The membership API expects UUIDs.
   const communityUuid = community.value.id
   if (!/^[0-9a-fA-F-]{36}$/.test(communityUuid)) {
     joinError.value = 'This community has a non-UUID id and cannot be joined yet.'
@@ -84,19 +86,7 @@ async function joinCommunity() {
   }
 }
 
-function loadCommunities(): CommunityDraft[] {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  const parsed: unknown = raw ? JSON.parse(raw) : []
-  if (!Array.isArray(parsed)) return []
-  return (parsed as any[]).map((c) => {
-    const id = typeof c?.id === 'string' && c.id.length > 0 ? c.id : `${c?.createdAt ?? 'unknown'}_${c?.name ?? 'community'}`
-    return { ...c, id } as CommunityDraft
-  })
-}
-
-const community = computed(() => loadCommunities().find(c => c.id === communityId.value) ?? null)
-
-function locationLabel(c: CommunityDraft): string {
+function locationLabel(c: Community): string {
   if (c.global) return 'Global'
   const parts = [c.location?.city, c.location?.region, c.location?.country?.name].filter(Boolean) as string[]
   return parts.length ? parts.join(', ') : 'No location'
@@ -160,6 +150,9 @@ const partySchedule = computed<PartySlot[]>(() => {
     return { ...s, title: `${s.title} ${pick(variants, seed + i * 13)}` }
   })
 })
+
+onMounted(refresh)
+watch(communityId, refresh)
 </script>
 
 <template>
@@ -173,7 +166,14 @@ const partySchedule = computed<PartySlot[]>(() => {
             <h1 class="text-2xl font-semibold text-white">
               {{ community?.name ?? 'Community' }}
             </h1>
-            <p v-if="community" class="mt-2 text-sm text-slate-200">
+            <p v-if="loading" class="mt-2 text-sm text-slate-300">Loading community…</p>
+            <p
+              v-else-if="loadError"
+              class="mt-2 text-sm text-rose-200"
+            >
+              {{ loadError }}
+            </p>
+            <p v-else-if="community" class="mt-2 text-sm text-slate-200">
               {{ locationLabel(community) }} • Created {{ new Date(community.createdAt).toLocaleDateString() }}
             </p>
             <p v-else class="mt-2 text-sm text-rose-200">Community not found.</p>

@@ -4,24 +4,13 @@ import { RouterLink } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
 import { COUNTRIES, type Country } from '../data/countries'
+import { createCommunity, type CreateCommunityInput } from '../features/community/api'
 
 type CommunityLocation = {
   country?: Country
   region?: string
   city?: string
 }
-
-type CommunityDraft = {
-  id: string
-  name: string
-  description: string
-  imageDataUrl?: string
-  global: boolean
-  location?: CommunityLocation
-  createdAt: string
-}
-
-const STORAGE_KEY = 'latinVibe.communities'
 
 const name = ref('')
 const description = ref('')
@@ -38,6 +27,8 @@ const imageDataUrl = ref<string>('')
 const imageError = ref<string>('')
 
 const submitted = ref(false)
+const createdCommunityId = ref<string>('')
+const submitting = ref(false)
 const submitError = ref('')
 
 const nameError = computed(() => (name.value.trim().length === 0 ? 'Name is required.' : ''))
@@ -73,20 +64,6 @@ function clearCountry() {
   country.value = null
   countryQuery.value = ''
   countryOpen.value = false
-}
-
-function saveCommunity(draft: CommunityDraft) {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  const existing: CommunityDraft[] = raw ? JSON.parse(raw) : []
-  existing.unshift(draft)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
-}
-
-function newCommunityId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `c_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`
 }
 
 function buildLocation(): CommunityLocation | undefined {
@@ -132,7 +109,7 @@ async function onImageSelected(e: Event) {
     return
   }
 
-  // Keep it small to avoid bloating localStorage.
+  // Keep it small to avoid large payloads.
   const maxBytes = 3 * 1024 * 1024
   if (file.size > maxBytes) {
     imageError.value = 'Image is too large. Please choose an image under 3MB.'
@@ -162,25 +139,34 @@ function removeImage() {
   imageError.value = ''
 }
 
-function onSubmit() {
-  if (!canSubmit.value) return
+async function onSubmit() {
+  if (!canSubmit.value || submitting.value) return
   submitError.value = ''
 
-  const draft: CommunityDraft = {
-    id: newCommunityId(),
+  const loc = buildLocation()
+  const input: CreateCommunityInput = {
     name: name.value.trim(),
     description: description.value.trim(),
     imageDataUrl: imageDataUrl.value || undefined,
     global: isGlobal.value,
-    location: buildLocation(),
-    createdAt: new Date().toISOString(),
+    location: loc
+      ? {
+          country: loc.country ? { code: loc.country.code, name: loc.country.name } : undefined,
+          region: loc.region,
+          city: loc.city,
+        }
+      : undefined,
   }
 
+  submitting.value = true
   try {
-    saveCommunity(draft)
+    const created = await createCommunity(input)
+    createdCommunityId.value = created.id
     submitted.value = true
   } catch (e) {
-    submitError.value = e instanceof Error ? e.message : 'Could not save. Please try again.'
+    submitError.value = e instanceof Error ? e.message : 'Could not create community. Please try again.'
+  } finally {
+    submitting.value = false
   }
 }
 
@@ -205,28 +191,31 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
           <div>
             <h1 class="text-2xl font-semibold text-white">Create a community</h1>
             <p class="mt-2 text-sm text-slate-200">
-              Start simple: name, description, and optional location. We’ll connect this to the backend later.
+              Start simple: name, description, and optional location.
             </p>
           </div>
           <RouterLink class="text-sm text-slate-200 hover:text-white" to="/">Back</RouterLink>
         </div>
 
         <div v-if="submitted" class="mt-8 rounded-xl bg-emerald-500/10 p-4 ring-1 ring-emerald-400/20">
-          <div class="text-sm font-semibold text-emerald-200">Community saved locally.</div>
+          <div class="text-sm font-semibold text-emerald-200">Community created.</div>
           <div class="mt-1 text-sm text-slate-200">
-            We stored it in your browser for now. Next step: publish it and invite admins.
+            Your community is now available in the communities list.
           </div>
           <div class="mt-4 flex gap-3">
             <RouterLink
               class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-              to="/"
+              :to="createdCommunityId ? `/communities/${createdCommunityId}` : '/communities'"
             >
-              Back to home
+              View community
             </RouterLink>
             <button
               class="inline-flex items-center justify-center rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
               type="button"
-              @click="submitted = false"
+              @click="
+                submitted = false;
+                createdCommunityId = '';
+              "
             >
               Create another
             </button>
@@ -385,15 +374,10 @@ onBeforeUnmount(() => window.removeEventListener('pointerdown', onGlobalPointerD
             class="w-full rounded-xl px-4 py-3 text-sm font-semibold transition"
             :class="canSubmit ? 'bg-white text-slate-900 hover:bg-slate-100' : 'bg-white/10 text-slate-300 ring-1 ring-white/10'"
             type="submit"
-            :disabled="!canSubmit"
+            :disabled="!canSubmit || submitting"
           >
-            Save community
+            {{ submitting ? 'Creating…' : 'Create community' }}
           </button>
-
-          <p class="text-xs text-slate-400">
-            Saved locally under
-            <code class="rounded bg-white/10 px-1.5 py-0.5 text-slate-200">latinVibe.communities</code>.
-          </p>
         </form>
       </div>
     </section>

@@ -1,50 +1,22 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
 import type { Country } from '../data/countries'
+import { listCommunities, type Community } from '../features/community/api'
 
 type CommunityLocation = {
-  country?: Country
-  region?: string
-  city?: string
+  country: Country | null
+  region: string | null
+  city: string | null
 }
-
-type CommunityDraft = {
-  id: string
-  name: string
-  description: string
-  imageDataUrl?: string
-  global: boolean
-  location?: CommunityLocation
-  createdAt: string
-}
-
-const STORAGE_KEY = 'latinVibe.communities'
 
 const query = ref('')
 
-function loadCommunities(): CommunityDraft[] {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  const parsed: unknown = raw ? JSON.parse(raw) : []
-  if (!Array.isArray(parsed)) return []
-
-  // Backwards-compatible migration: older entries may not have an id.
-  // We derive a stable id and persist the upgraded list.
-  const upgraded = (parsed as any[]).map((c) => {
-    const id = typeof c?.id === 'string' && c.id.length > 0 ? c.id : `${c?.createdAt ?? 'unknown'}_${c?.name ?? 'community'}`
-    return { ...c, id } as CommunityDraft
-  })
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(upgraded))
-  } catch {
-    // ignore persistence issues; list can still render
-  }
-  return upgraded
-}
-
-const communities = ref<CommunityDraft[]>(loadCommunities())
+const communities = ref<Community[]>([])
+const loading = ref(false)
+const loadError = ref('')
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
@@ -66,15 +38,30 @@ const filtered = computed(() => {
   })
 })
 
-function locationLabel(c: CommunityDraft): string {
-  if (c.global) return 'Global'
-  const parts = [c.location?.city, c.location?.region, c.location?.country?.name].filter(Boolean) as string[]
+function formatLocation(location: CommunityLocation | null | undefined): string {
+  const parts = [location?.city, location?.region, location?.country?.name].filter(Boolean) as string[]
   return parts.length ? parts.join(', ') : 'No location'
 }
 
-function refresh() {
-  communities.value = loadCommunities()
+function locationLabel(c: Community): string {
+  if (c.global) return 'Global'
+  return formatLocation(c.location)
 }
+
+async function refresh() {
+  loadError.value = ''
+  loading.value = true
+  try {
+    communities.value = await listCommunities()
+  } catch (e) {
+    loadError.value = e instanceof Error ? e.message : 'Could not load communities.'
+    communities.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(refresh)
 </script>
 
 <template>
@@ -87,7 +74,7 @@ function refresh() {
           <div>
             <h1 class="text-2xl font-semibold text-white">Communities</h1>
             <p class="mt-2 text-sm text-slate-200">
-              This list is stored locally in your browser for now. We’ll connect it to the backend later.
+              Explore communities and discover what’s happening near you.
             </p>
           </div>
           <div class="flex items-center gap-2">
@@ -136,53 +123,72 @@ function refresh() {
         </div>
 
         <div class="mt-6 space-y-3">
-          <div v-if="filtered.length === 0" class="rounded-xl bg-slate-950/40 p-4 text-sm text-slate-300 ring-1 ring-white/10">
-            No communities yet. Create your first one.
+          <div
+            v-if="loadError"
+            class="rounded-xl bg-rose-500/10 p-4 text-sm text-rose-200 ring-1 ring-rose-400/20"
+          >
+            {{ loadError }}
           </div>
 
           <div
-            v-for="c in filtered"
-            :key="c.id"
-            class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10"
+            v-if="loading"
+            class="rounded-xl bg-slate-950/40 p-4 text-sm text-slate-300 ring-1 ring-white/10"
           >
-            <RouterLink class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/60" :to="`/communities/${c.id}`">
-              <div class="flex gap-4">
-                <div class="shrink-0">
-                  <div
-                    class="h-20 w-28 overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10"
-                    style="aspect-ratio: 4 / 3"
-                  >
-                    <img
-                      v-if="c.imageDataUrl"
-                      :src="c.imageDataUrl"
-                      alt=""
-                      class="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                    <div v-else class="grid h-full w-full place-items-center text-xs text-slate-400">No image</div>
-                  </div>
-                </div>
-
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0">
-                      <div class="truncate text-sm font-semibold text-white">{{ c.name }}</div>
-                      <div class="mt-1 text-xs text-slate-300">{{ locationLabel(c) }}</div>
-                    </div>
-                    <div class="text-xs text-slate-400">Created {{ new Date(c.createdAt).toLocaleString() }}</div>
-                  </div>
-
-                  <p class="mt-3 line-clamp-3 text-sm text-slate-200 whitespace-pre-line">
-                    {{ c.description }}
-                  </p>
-                </div>
-              </div>
-              <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-slate-200">
-                View community
-                <span aria-hidden="true">→</span>
-              </div>
-            </RouterLink>
+            Loading communities…
           </div>
+
+          <div
+            v-else-if="filtered.length === 0"
+            class="rounded-xl bg-slate-950/40 p-4 text-sm text-slate-300 ring-1 ring-white/10"
+          >
+            No communities yet. Create your first one.
+          </div>
+
+          <template v-else>
+            <div
+              v-for="c in filtered"
+              :key="c.id"
+              class="rounded-2xl bg-slate-950/40 p-5 ring-1 ring-white/10"
+            >
+              <RouterLink class="block rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400/60" :to="`/communities/${c.id}`">
+                <div class="flex gap-4">
+                  <div class="shrink-0">
+                    <div
+                      class="h-20 w-28 overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10"
+                      style="aspect-ratio: 4 / 3"
+                    >
+                      <img
+                        v-if="c.imageDataUrl"
+                        :src="c.imageDataUrl"
+                        alt=""
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                      <div v-else class="grid h-full w-full place-items-center text-xs text-slate-400">No image</div>
+                    </div>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div class="min-w-0">
+                        <div class="truncate text-sm font-semibold text-white">{{ c.name }}</div>
+                        <div class="mt-1 text-xs text-slate-300">{{ locationLabel(c) }}</div>
+                      </div>
+                      <div class="text-xs text-slate-400">Created {{ new Date(c.createdAt).toLocaleString() }}</div>
+                    </div>
+
+                    <p class="mt-3 line-clamp-3 whitespace-pre-line text-sm text-slate-200">
+                      {{ c.description }}
+                    </p>
+                  </div>
+                </div>
+                <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-slate-200">
+                  View community
+                  <span aria-hidden="true">→</span>
+                </div>
+              </RouterLink>
+            </div>
+          </template>
         </div>
       </div>
     </section>
