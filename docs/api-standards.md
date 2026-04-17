@@ -5,7 +5,7 @@
 - Keep paths stable when refactoring packages.
 
 ## Resources and conventions
-- Use plural nouns: `/api/users`, `/api/dancers`
+- Use plural nouns: `/api/members`, `/api/dancers`
 - Prefer simple JSON DTOs in REST adapters.
 - Controllers should be thin: validate + map + call a use-case.
 

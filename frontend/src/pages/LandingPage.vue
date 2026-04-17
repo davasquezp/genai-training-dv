@@ -115,7 +115,7 @@
       </div>
     </section>
 
-    <section id="cta" class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+    <section v-if="!loggedIn" id="cta" class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
       <div class="flex flex-col items-start justify-between gap-6 rounded-2xl bg-white/5 p-8 ring-1 ring-white/10 md:flex-row md:items-center">
         <div>
           <h2 class="text-xl font-semibold text-white">Ready to join?</h2>
@@ -123,7 +123,6 @@
         </div>
         <div class="flex gap-3">
           <RouterLink
-            v-if="!loggedIn"
             class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
             to="/signup"
           >

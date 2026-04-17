@@ -1,19 +1,19 @@
-package com.dv.genaitraining.features.user;
+package com.dv.genaitraining.shared.api;
 
 import java.time.Instant;
 
 /**
- * Error payload returned by the API.
+ * Standard API error payload.
  *
  * @param timestamp error time
  * @param status HTTP status code
- * @param error stable error code
+ * @param code machine-readable code
  * @param message human-readable message
  */
 public record ApiError(
     Instant timestamp,
     int status,
-    String error,
+    String code,
     String message
 ) {}
 

@@ -3,7 +3,7 @@
 ## Goals
 - Keep the codebase easy to navigate as features grow.
 - Make features removable by grouping **all feature artifacts together**.
-- Preserve stable external contracts (e.g. REST paths like `/api/users`).
+- Preserve stable external contracts (e.g. REST paths like `/api/*`).
 
 ## High-level structure
 
@@ -19,9 +19,10 @@ Frontend code lives under:
 Each feature is a top-level folder under `com.dv.genaitraining.features.<feature>`.
 
 Examples in this repo:
-- `com.dv.genaitraining.features.user`
-- `com.dv.genaitraining.features.customer`
+- `com.dv.genaitraining.features.member`
 - `com.dv.genaitraining.features.dancer`
+- `com.dv.genaitraining.features.community`
+- `com.dv.genaitraining.features.communitymembership`
 
 ### What belongs inside a slice
 Put **everything** that is specific to the feature inside the feature package:

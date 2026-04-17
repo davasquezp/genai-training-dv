@@ -1,6 +1,6 @@
 package com.dv.genaitraining.features.member;
 
-import com.dv.genaitraining.features.user.ApiError;
+import com.dv.genaitraining.shared.api.ApiError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

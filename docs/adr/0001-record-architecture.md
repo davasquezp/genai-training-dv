@@ -15,7 +15,7 @@ We want to keep a clean, scalable structure while shipping quickly:
 - Keep **cross-cutting** code in `src/main/java/com/dv/genaitraining/shared/`.
 - Prefer **records** for domain + DTOs where appropriate.
 - Use **ports & adapters** concepts, but package **feature-first**.
-- Keep REST endpoints stable under `/api/*` (e.g. `/api/users`, `/api/dancers`).
+- Keep REST endpoints stable under `/api/*` (e.g. `/api/members`, `/api/dancers`).
 - Start new features with **in-memory persistence** when appropriate, then replace with DB-backed adapters without breaking ports/controllers.
 
 ## Consequences
