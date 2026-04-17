@@ -26,7 +26,7 @@ Examples in this repo:
 
 ### What belongs inside a slice
 Put **everything** that is specific to the feature inside the feature package:
-- **Domain**: records/enums/value objects (e.g. `Dancer`, `DancerId`, `Role`, `DanceStyle`)
+- **Domain**: records/enums/value objects (e.g. `Dancer`, `Role`, `DanceStyle`)
 - **Inbound ports (use-cases)**: interfaces consumed by adapters (e.g. `RegisterDancerUseCase`)
 - **Application service**: implements inbound ports and orchestrates logic (e.g. `DancerService`)
 - **Outbound ports**: interfaces the service needs (e.g. `DancerRepository`)
@@ -41,6 +41,12 @@ Only place code in `shared/` if it is truly cross-cutting and used by multiple f
 Current examples:
 - `com.dv.genaitraining.shared.CorsConfig` (CORS for `/api/**`)
 - `com.dv.genaitraining.shared.TimeConfig` (if present; shared `Clock` bean)
+
+#### Shared Id value objects
+Id value objects are considered **shared by default** in this codebase, even if they originate in a single feature.
+
+- Put new typed ids in `src/main/java/com/dv/genaitraining/shared/ids/` under `com.dv.genaitraining.shared.ids` (e.g. `MemberId`, `DancerId`, `CommunityId`).
+- Features should **import** these ids rather than defining feature-local `*Id` types.
 
 ## Hexagonal (ports & adapters) within a slice
 

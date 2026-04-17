@@ -70,13 +70,12 @@ async function onSubmit() {
             >
               Back to home
             </RouterLink>
-            <button
+            <RouterLink
               class="inline-flex items-center justify-center rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
-              type="button"
-              @click="submitted = false"
+              to="/me"
             >
-              Create another
-            </button>
+              Go to my profile
+            </RouterLink>
           </div>
         </div>
 

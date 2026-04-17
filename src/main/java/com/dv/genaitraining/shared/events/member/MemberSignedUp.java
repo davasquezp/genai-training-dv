@@ -1,6 +1,6 @@
 package com.dv.genaitraining.shared.events.member;
 
-import com.dv.genaitraining.features.member.MemberRole;
+import com.dv.genaitraining.features.member.domain.MemberRole;
 import com.dv.genaitraining.shared.events.DomainEvent;
 import com.dv.genaitraining.shared.ids.MemberId;
 

@@ -1,0 +1,44 @@
+package com.dv.genaitraining.features.dancer.domain;
+
+import com.dv.genaitraining.shared.ids.DancerId;
+import com.dv.genaitraining.shared.ids.MemberId;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Outbound port for dancer persistence.
+ */
+public interface DancerRepository {
+  /**
+   * Saves a dancer registration.
+   *
+   * @param dancer dancer
+   * @return saved dancer
+   */
+  Dancer save(Dancer dancer);
+
+  /**
+   * Lists all dancers (newest first).
+   *
+   * @return dancers
+   */
+  List<Dancer> findAll();
+
+  /**
+   * Finds a dancer by id.
+   *
+   * @param id dancer id
+   * @return dancer if found
+   */
+  Optional<Dancer> findById(DancerId id);
+
+  /**
+   * Finds a dancer by member id.
+   *
+   * @param memberId member id
+   * @return dancer if found
+   */
+  Optional<Dancer> findByMemberId(MemberId memberId);
+}
+

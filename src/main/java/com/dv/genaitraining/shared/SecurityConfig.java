@@ -1,8 +1,8 @@
 package com.dv.genaitraining.shared;
 
-import com.dv.genaitraining.features.member.AuthController;
-import com.dv.genaitraining.features.member.JwtService;
-import com.dv.genaitraining.features.member.MemberRole;
+import com.dv.genaitraining.features.member.api.AuthController;
+import com.dv.genaitraining.features.member.application.JwtService;
+import com.dv.genaitraining.features.member.domain.MemberRole;
 import com.dv.genaitraining.shared.security.TokenBlacklist;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
