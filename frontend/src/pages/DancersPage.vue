@@ -47,7 +47,7 @@
             {{ error ? error : 'No dancers registered yet.' }}
             <div v-if="!error" class="mt-4">
               <RouterLink
-                to="/interest"
+                to="/signup"
                 class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-2.5 text-sm text-white hover:bg-white/20"
               >
                 Register the first dancer →
@@ -68,13 +68,19 @@
                 <div class="min-w-0 flex-1">
                   <div class="flex items-baseline gap-3">
                     <div class="text-lg font-semibold text-white">{{ dancer.name }}</div>
-                    <div class="rounded-full bg-white/10 px-3 py-0.5 text-xs font-medium uppercase tracking-wider text-slate-300">
-                      {{ dancer.role }}
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span
+                        v-for="r in dancer.roles"
+                        :key="r"
+                        class="rounded-full bg-white/10 px-3 py-0.5 text-xs font-semibold uppercase tracking-wider text-slate-200 ring-1 ring-white/10"
+                      >
+                        {{ r }}
+                      </span>
+                      <span v-if="!dancer.roles || dancer.roles.length === 0" class="text-xs text-slate-400">—</span>
                     </div>
                   </div>
 
                   <div class="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400">
-                    <div>{{ dancer.countryName }} ({{ dancer.countryCode }})</div>
                     <div v-if="dancer.styles && dancer.styles.length" class="flex flex-wrap gap-1">
                       <span
                         v-for="style in dancer.styles"
@@ -113,9 +119,7 @@ import SiteHeader from '../components/SiteHeader.vue'
 type Dancer = {
   id: string
   name: string
-  role: string
-  countryCode: string
-  countryName: string
+  roles: string[]
   styles: string[]
   createdAt: string
 }
@@ -165,9 +169,7 @@ const filtered = computed(() => {
   return dancers.value.filter(d => {
     const haystack = [
       d.name,
-      d.countryName,
-      d.countryCode,
-      d.role,
+      ...(d.roles || []),
       ...(d.styles || []),
     ]
       .filter(Boolean)

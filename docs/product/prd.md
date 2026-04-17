@@ -8,6 +8,12 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 
 - Collect role + styles to understand demand per community/region.
 
+### Enable member accounts (signup/login) for role-based experiences
+
+- Let users create accounts with unique email + phone.
+- Support simple login to unlock role-based actions (starting with dancers).
+- Provide a **My profile** area for logged-in members to manage their account and activate dancer experiences.
+
 ### Enable communities (city/area) with landing pages and communication links
 
 - Publish community channels (WhatsApp/Email/Telegram/Instagram).
@@ -24,7 +30,6 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 - Commission-based ticketing: take a commission via payment gateways for event ticketing such as festivals (including accommodation) or workshops.
 
 ## Secondary goals (MVP)
-- Full authentication / accounts
 - Matching algorithm
 - Messaging/chat
 - Full event scheduling (may be linked as a related feature later)
@@ -35,15 +40,37 @@ LatinVibe MVP vision is to create a one-stop-shop for dancing communities global
 
 ## MVP scope
 
-### Dancer interest
-- Form captures:
-  - name
-  - role (lead/follower)
-  - country (code + name)
-  - styles (multi-select; e.g. Bachata/Salsa/Kizomba/Zouk)
-- Admin/debug listing to verify submissions.
-- Persistence:
-  - in-memory initially (upgrade path to durable storage)
+### User management (Members)
+- Domain entity: **Member**
+- Roles:
+  - None
+  - Dancer (activated by the member from My profile)
+  - CommunityManager
+  - Instructor
+- Signup:
+  - email (unique)
+  - phone (required, unique)
+  - password (stored as **hash + salt**)
+- Login:
+  - email + password
+  - yields an authenticated session/token for the web app
+- Authorization-based UI (initial):
+  - A **Join community** button is visible only for an authenticated member with role **Dancer**
+
+### Member profile (My profile)
+- A logged-in member can access a **My profile** page.
+- The My profile page is only visible for the **currently logged-in member**.
+- From My profile, the member can activate dancer experiences with an **I am a dancer** action.
+- After activation:
+  - The UI shows a confirmation message (**Now you are a dancer!**)
+  - The UI offers a button to navigate to dancer details (a dedicated Dancer tab/section).
+
+### Dancer onboarding (after activation)
+- Dancer preferences are managed from a Dancer tab within My profile after dancer activation.
+- If the dancer profile is not available yet, the Dancer tab shows **Your dancer profile is not yet available**.
+- If the dancer profile exists, the member can view and edit their dancer details:
+  - Nationality
+  - Dancer role (Lead/Follower/None)
 
 ### Communities
 
@@ -78,7 +105,14 @@ Communities can be associated with related features such as:
 MVP requirement is to represent/link these (not to build full modules).
 
 ## Acceptance criteria
-- A dancer can submit their interest and receives a clear confirmation that it was received.
+- A user can sign up with a unique email and phone number and receives a clear confirmation that the account was created.
+- A user can log in with valid credentials.
+- A logged-in member can access **My profile** and see their account details.
+- A member can press **I am a dancer** and receives a confirmation message without immediate navigation.
+- After becoming a dancer, the member can open the Dancer tab and:
+  - See **Your dancer profile is not yet available** if no dancer profile exists yet.
+  - Edit and save dancer details when a dancer profile exists.
+- An authenticated member with role **Dancer** can see a **Join community** button on a community page.
 - Organizers can view registrations for a community/region to validate demand.
 - A community has a public landing page that shows its name, region, and communication links.
 - A community cannot exceed its configured tier limit for members.

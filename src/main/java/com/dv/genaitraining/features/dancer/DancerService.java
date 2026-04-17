@@ -27,20 +27,17 @@ public class DancerService implements RegisterDancerUseCase, ListDancersUseCase 
   }
 
   @Override
-  public Dancer register(String name, Role role, String countryCode, String countryName, List<DanceStyle> styles) {
+  public Dancer register(String name, Role role, List<DanceStyle> styles) {
     Objects.requireNonNull(name, "name");
-    Objects.requireNonNull(role, "role");
-    Objects.requireNonNull(countryCode, "countryCode");
-    Objects.requireNonNull(countryName, "countryName");
     Objects.requireNonNull(styles, "styles");
 
+    List<Role> roles = role == null ? List.of() : List.of(role);
     Instant now = Instant.now(clock);
     Dancer dancer = new Dancer(
         DancerId.newId(),
+        null,
         name,
-        role,
-        countryCode,
-        countryName,
+        roles,
         List.copyOf(styles),
         now
     );

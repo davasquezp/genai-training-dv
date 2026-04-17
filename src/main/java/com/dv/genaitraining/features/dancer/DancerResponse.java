@@ -9,18 +9,14 @@ import java.util.UUID;
  *
  * @param id id
  * @param name name
- * @param role role
- * @param countryCode country code
- * @param countryName country name
+ * @param roles roles
  * @param styles styles
  * @param createdAt created at
  */
 public record DancerResponse(
     UUID id,
     String name,
-    String role,
-    String countryCode,
-    String countryName,
+    List<String> roles,
     List<String> styles,
     Instant createdAt
 ) {}

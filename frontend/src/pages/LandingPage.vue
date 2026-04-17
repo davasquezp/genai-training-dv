@@ -22,11 +22,27 @@
 
           <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <RouterLink
+              v-if="!loggedIn"
               class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-              to="/interest"
+              to="/signup"
             >
-              I am a dancer
+              Join!
             </RouterLink>
+            <RouterLink
+              v-if="!loggedIn"
+              class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
+              to="/login"
+            >
+              Login
+            </RouterLink>
+            <button
+              v-if="loggedIn"
+              class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
+              type="button"
+              @click="onLogout"
+            >
+              Log out
+            </button>
             <RouterLink
               class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
               to="/communities/new"
@@ -99,29 +115,6 @@
       </div>
     </section>
 
-    <section id="how-it-works" class="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-      <div class="rounded-2xl bg-gradient-to-br from-white/10 to-white/5 p-8 ring-1 ring-white/10">
-        <h2 class="text-xl font-semibold text-white">How we’ll build this (step by step)</h2>
-        <ol class="mt-6 grid gap-4 md:grid-cols-3">
-          <li class="rounded-xl bg-slate-950/40 p-4 ring-1 ring-white/10">
-            <div class="text-xs text-slate-300">Step 1</div>
-            <div class="mt-1 text-sm font-semibold text-white">Landing page</div>
-            <div class="mt-2 text-sm text-slate-200">You’re here. Clean UI, easy to extend.</div>
-          </li>
-          <li class="rounded-xl bg-slate-950/40 p-4 ring-1 ring-white/10">
-            <div class="text-xs text-slate-300">Step 2</div>
-            <div class="mt-1 text-sm font-semibold text-white">Interest page</div>
-            <div class="mt-2 text-sm text-slate-200">Collect preferences and keep them for next steps.</div>
-          </li>
-          <li class="rounded-xl bg-slate-950/40 p-4 ring-1 ring-white/10">
-            <div class="text-xs text-slate-300">Step 3</div>
-            <div class="mt-1 text-sm font-semibold text-white">Wire the API</div>
-            <div class="mt-2 text-sm text-slate-200">Persist interest and start listing events/studios.</div>
-          </li>
-        </ol>
-      </div>
-    </section>
-
     <section id="cta" class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
       <div class="flex flex-col items-start justify-between gap-6 rounded-2xl bg-white/5 p-8 ring-1 ring-white/10 md:flex-row md:items-center">
         <div>
@@ -130,19 +123,12 @@
         </div>
         <div class="flex gap-3">
           <RouterLink
+            v-if="!loggedIn"
             class="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-            to="/interest"
+            to="/signup"
           >
-            Register interest
+            Join!
           </RouterLink>
-          <a
-            class="inline-flex items-center justify-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/15"
-            href="http://localhost:8080/swagger-ui/index.html"
-            target="_blank"
-            rel="noreferrer"
-          >
-            View API docs
-          </a>
         </div>
       </div>
     </section>
@@ -154,7 +140,6 @@
           <RouterLink class="hover:text-slate-200" to="/#features">Features</RouterLink>
           <RouterLink class="hover:text-slate-200" to="/communities">Communities</RouterLink>
           <RouterLink class="hover:text-slate-200" to="/dancers">Dancers</RouterLink>
-          <RouterLink class="hover:text-slate-200" to="/interest">Interest</RouterLink>
         </div>
       </div>
     </footer>
@@ -162,6 +147,18 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { authState, logout } from '../features/member/auth'
 import SiteHeader from '../components/SiteHeader.vue'
+
+const router = useRouter()
+const loggedIn = computed(() => authState.token.length > 0)
+
+async function onLogout() {
+  await logout()
+  await router.push('/')
+}
 </script>
 

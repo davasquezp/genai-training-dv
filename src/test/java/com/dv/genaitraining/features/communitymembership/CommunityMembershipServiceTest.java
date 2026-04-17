@@ -1,6 +1,9 @@
 package com.dv.genaitraining.features.communitymembership;
 
 import com.dv.genaitraining.features.community.CommunityId;
+import com.dv.genaitraining.features.community.Community;
+import com.dv.genaitraining.features.community.CommunityLocation;
+import com.dv.genaitraining.features.community.CommunityCountry;
 import com.dv.genaitraining.features.community.CommunityRepository;
 import com.dv.genaitraining.features.dancer.Dancer;
 import com.dv.genaitraining.features.dancer.DancerId;
@@ -44,23 +47,19 @@ class CommunityMembershipServiceTest {
     CommunityId communityId = new CommunityId(communityIdValue);
     Dancer dancer = new Dancer(
         dancerId,
+        null,
         "Alice",
-        Role.LEAD,
-        "CL",
-        "Chile",
+        List.of(Role.LEAD),
         List.of(DanceStyle.SALSA),
         NOW
     );
 
     when(dancerRepository.findById(dancerId)).thenReturn(Optional.of(dancer));
-    when(communityRepository.findById(communityId)).thenReturn(Optional.ofNullable(null));
-    // We'll just stub presence with any non-null community object by using Optional.of(new Object())? Not possible.
-    // CommunityRepository returns Optional<Community>, so we need a Community instance.
-    // We'll use a minimal valid one in the test below.
+    when(communityRepository.findById(communityId)).thenReturn(Optional.of(dummyCommunity(communityId)));
     when(membershipRepository.findByDancerIdAndCommunityId(dancerId, communityId)).thenReturn(Optional.empty());
     when(membershipRepository.save(membershipCaptor.capture())).thenAnswer(inv -> inv.getArgument(0));
 
-    var service = new CommunityMembershipService(membershipRepository, dancerRepository, CLOCK);
+    var service = new CommunityMembershipService(membershipRepository, dancerRepository, communityRepository, CLOCK);
     CommunityMembership result = service.associate(dancerIdValue, communityIdValue);
 
     assertThat(result.id().value()).isNotNull();
@@ -76,10 +75,22 @@ class CommunityMembershipServiceTest {
     DancerId dancerId = new DancerId(dancerIdValue);
     when(dancerRepository.findById(dancerId)).thenReturn(Optional.empty());
 
-    var service = new CommunityMembershipService(membershipRepository, dancerRepository, CLOCK);
+    var service = new CommunityMembershipService(membershipRepository, dancerRepository, communityRepository, CLOCK);
 
     assertThatThrownBy(() -> service.associate(dancerIdValue, UUID.randomUUID()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Dancer not found");
+  }
+
+  private static Community dummyCommunity(CommunityId id) {
+    return new Community(
+        id,
+        "Test community",
+        "Test description",
+        null,
+        false,
+        new CommunityLocation(new CommunityCountry("CL", "Chile"), null, "Santiago"),
+        NOW
+    );
   }
 }

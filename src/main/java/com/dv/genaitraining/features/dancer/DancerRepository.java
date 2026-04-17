@@ -1,5 +1,7 @@
 package com.dv.genaitraining.features.dancer;
 
+import com.dv.genaitraining.shared.ids.MemberId;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -29,5 +31,13 @@ public interface DancerRepository {
    * @return dancer if found
    */
   Optional<Dancer> findById(DancerId id);
+
+  /**
+   * Finds a dancer by member id.
+   *
+   * @param memberId member id
+   * @return dancer if found
+   */
+  Optional<Dancer> findByMemberId(MemberId memberId);
 }
 

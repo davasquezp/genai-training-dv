@@ -73,3 +73,33 @@ When switching persistence:
 - switch wiring (Spring bean selection)
 - keep domain + service logic unchanged
 
+## Event-driven bounded contexts (EDA)
+
+This codebase uses an **EventBus** abstraction to connect bounded contexts (vertical slices) in a loosely-coupled way.
+
+- **Contracts** live in `com.dv.genaitraining.shared.events.*`
+- **Transport now**: in-memory publish/subscribe (`InMemoryEventBus`)
+- **Publish timing**: **after commit** when a Spring transaction is active (`AfterCommitEventBus`)
+
+### Member -> Dancer activation flow
+
+When a logged-in member activates the Dancer role, the Member bounded context publishes an event after commit.
+
+```text
+Member API (add role DANCER)
+  -> persist updated member
+  -> publish MemberRoleAdded (after_commit)
+  -> Dancer bounded context handler creates Dancer linked to MemberId
+  -> publish DancerCreated
+```
+
+### Authorization: “me” endpoints
+
+For sensitive, user-scoped data, prefer **principal-derived identity** over path parameters:
+
+- `POST /api/members/me/roles` modifies roles for the currently authenticated member only.
+- `GET /api/dancers/me` returns the dancer profile for the currently authenticated member (404 if none).
+- `PUT /api/dancers/me` updates the dancer profile for the currently authenticated member only.
+
+This avoids accidental exposure where a client could request or update another member’s data by providing a different id.
+

@@ -16,17 +16,34 @@
 
       <div class="hidden items-center gap-6 text-sm text-slate-200 sm:flex">
         <RouterLink class="hover:text-white" to="/#features">Features</RouterLink>
-        <RouterLink class="hover:text-white" to="/#how-it-works">How it works</RouterLink>
-        <RouterLink class="hover:text-white" to="/interest">Interest</RouterLink>
         <RouterLink class="hover:text-white" to="/communities">Communities</RouterLink>
         <RouterLink class="hover:text-white" to="/dancers">Dancers</RouterLink>
+        <RouterLink v-if="loggedIn" class="hover:text-white" to="/me">My profile</RouterLink>
+        <RouterLink v-if="!loggedIn" class="hover:text-white" to="/login">Login</RouterLink>
+        <button v-else class="hover:text-white" type="button" @click="onLogout">Log out</button>
         <RouterLink
+          v-if="!loggedIn"
           class="rounded-xl bg-white/10 px-3 py-2 font-medium text-white ring-1 ring-white/15 hover:bg-white/15"
-          to="/interest"
+          to="/signup"
         >
-          I am a dancer
+          Join!
         </RouterLink>
       </div>
     </nav>
   </header>
 </template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+import { authState, logout } from '../features/member/auth'
+
+const router = useRouter()
+const loggedIn = computed(() => authState.token.length > 0)
+
+async function onLogout() {
+  await logout()
+  await router.push('/')
+}
+</script>

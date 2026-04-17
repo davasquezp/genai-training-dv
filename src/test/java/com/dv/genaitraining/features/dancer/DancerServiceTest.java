@@ -32,17 +32,13 @@ class DancerServiceTest {
     var result = service.register(
         "Alice",
         Role.LEAD,
-        "CL",
-        "Chile",
         List.of(DanceStyle.SALSA, DanceStyle.BACHATA)
     );
 
     verify(dancerRepository).save(dancerCaptor.getValue());
     assertThat(result.id().value()).isNotNull();
     assertThat(result.name()).isEqualTo("Alice");
-    assertThat(result.role()).isEqualTo(Role.LEAD);
-    assertThat(result.countryCode()).isEqualTo("CL");
-    assertThat(result.countryName()).isEqualTo("Chile");
+    assertThat(result.roles()).containsExactly(Role.LEAD);
     assertThat(result.styles()).containsExactly(DanceStyle.SALSA, DanceStyle.BACHATA);
     assertThat(result.createdAt()).isEqualTo(NOW);
   }

@@ -35,10 +35,16 @@
             <div class="flex-1">
               <div class="text-4xl font-semibold text-white">{{ dancer.name }}</div>
               <div class="mt-2 flex items-center gap-3">
-                <span class="rounded-2xl bg-white/10 px-5 py-1 text-sm uppercase tracking-widest text-slate-300">
-                  {{ dancer.role }}
-                </span>
-                <span class="text-slate-400">{{ dancer.countryName }} • {{ dancer.countryCode }}</span>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    v-for="r in dancer.roles"
+                    :key="r"
+                    class="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-200 ring-1 ring-white/10"
+                  >
+                    {{ r }}
+                  </span>
+                  <span v-if="!dancer.roles || dancer.roles.length === 0" class="text-sm text-slate-400">—</span>
+                </div>
               </div>
             </div>
 
@@ -71,14 +77,6 @@
           </dl>
         </div>
 
-        <div class="pt-4 text-center">
-          <RouterLink
-            to="/interest"
-            class="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100"
-          >
-            Register another dancer
-          </RouterLink>
-        </div>
       </div>
     </section>
   </div>
@@ -93,9 +91,7 @@ import SiteHeader from '../components/SiteHeader.vue'
 type Dancer = {
   id: string
   name: string
-  role: string
-  countryCode: string
-  countryName: string
+  roles: string[]
   styles: string[]
   createdAt: string
 }

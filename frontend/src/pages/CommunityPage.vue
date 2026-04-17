@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
 import type { Country } from '../data/countries'
+import { authHeader, getCachedMember, hasRole, isAuthenticated } from '../features/member/auth'
 
 type CommunityLocation = {
   country?: Country
@@ -38,6 +39,50 @@ const STORAGE_KEY = 'latinVibe.communities'
 
 const route = useRoute()
 const communityId = computed(() => String(route.params.id ?? ''))
+const canJoinCommunity = computed(() => isAuthenticated() && hasRole('DANCER'))
+
+const joining = ref(false)
+const joinError = ref('')
+
+async function joinCommunity() {
+  if (!community.value) return
+  joinError.value = ''
+
+  const member = getCachedMember()
+  if (!member) {
+    joinError.value = 'Please login first.'
+    return
+  }
+
+  // Communities are currently stored in localStorage and their id is typically a UUID.
+  // The membership API expects UUIDs.
+  const communityUuid = community.value.id
+  if (!/^[0-9a-fA-F-]{36}$/.test(communityUuid)) {
+    joinError.value = 'This community has a non-UUID id and cannot be joined yet.'
+    return
+  }
+
+  joining.value = true
+  try {
+    const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()?.replace(/\/+$/, '') ?? ''
+    const resp = await fetch(`${base}/api/community-memberships`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeader() },
+      body: JSON.stringify({
+        dancerId: member.id,
+        communityId: communityUuid,
+      }),
+    })
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => '')
+      throw new Error(text || `Join failed (${resp.status})`)
+    }
+  } catch (e: any) {
+    joinError.value = e?.message || 'Could not join community.'
+  } finally {
+    joining.value = false
+  }
+}
 
 function loadCommunities(): CommunityDraft[] {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -137,6 +182,24 @@ const partySchedule = computed<PartySlot[]>(() => {
         </div>
 
         <div v-if="community" class="mt-6 space-y-6">
+          <div v-if="canJoinCommunity" class="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div class="text-sm font-semibold text-white">Join this community</div>
+                <div class="mt-1 text-xs text-slate-300">Visible only to authenticated dancers.</div>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                :disabled="joining"
+                @click="joinCommunity"
+              >
+                {{ joining ? 'Joining…' : 'Join community' }}
+              </button>
+            </div>
+            <div v-if="joinError" class="mt-3 text-xs text-rose-200">{{ joinError }}</div>
+          </div>
+
           <div class="overflow-hidden rounded-2xl bg-slate-950/40 ring-1 ring-white/10">
             <div class="relative w-full" style="aspect-ratio: 4 / 3">
               <img

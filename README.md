@@ -56,6 +56,15 @@ Open:
 - Submit interest → `POST /api/dancers`
 - View live list + profiles at `/dancers`
 
+## Restart backend + frontend (one command)
+
+This will **force-kill** anything using ports `8080` and `5173`, then restart:
+
+```bash
+chmod +x scripts/restart-dev.sh
+./scripts/restart-dev.sh
+```
+
 ## Deploy backend to Render (Docker)
 
 This repo includes a root `Dockerfile` for the Spring Boot backend. Render will build and run it as a Docker Web Service.

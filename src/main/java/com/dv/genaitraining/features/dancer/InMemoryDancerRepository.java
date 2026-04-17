@@ -1,5 +1,6 @@
 package com.dv.genaitraining.features.dancer;
 
+import com.dv.genaitraining.shared.ids.MemberId;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -31,6 +32,14 @@ public class InMemoryDancerRepository implements DancerRepository {
   @Override
   public Optional<Dancer> findById(DancerId id) {
     return Optional.ofNullable(byId.get(id.value()));
+  }
+
+  @Override
+  public Optional<Dancer> findByMemberId(MemberId memberId) {
+    if (memberId == null) return Optional.empty();
+    return byId.values().stream()
+        .filter(d -> d.memberId() != null && memberId.equals(d.memberId()))
+        .findFirst();
   }
 }
 

@@ -9,11 +9,9 @@ public interface RegisterDancerUseCase {
    *
    * @param name name
    * @param role lead/follower
-   * @param countryCode country code
-   * @param countryName country name
    * @param styles styles
    * @return created dancer registration
    */
-  Dancer register(String name, Role role, String countryCode, String countryName, java.util.List<DanceStyle> styles);
+  Dancer register(String name, Role role, java.util.List<DanceStyle> styles);
 }
 
