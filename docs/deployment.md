@@ -21,6 +21,14 @@ Rules:
 - must be the **origin only** (no path, no `/api`)
 - no trailing slash
 
+#### JWT secret (required for startup)
+Set this on Render:
+- `APP_JWT_SECRET` = a strong random secret string
+
+Notes:
+- if `APP_JWT_SECRET` is missing/blank, the backend will fail at startup (`JWT secret must not be blank`)
+- recommended: generate a value locally with `openssl rand -base64 48`
+
 ## Frontend: Cloudflare Pages
 
 ### Build settings
