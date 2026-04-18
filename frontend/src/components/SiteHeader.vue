@@ -19,8 +19,8 @@
         <RouterLink class="hover:text-white" to="/communities">Communities</RouterLink>
         <RouterLink class="hover:text-white" to="/dancers">Dancers</RouterLink>
         <RouterLink v-if="loggedIn" class="hover:text-white" to="/me">My profile</RouterLink>
+        <button v-if="loggedIn" class="hover:text-white" type="button" @click="onLogout">Log out</button>
         <RouterLink v-if="!loggedIn" class="hover:text-white" to="/login">Login</RouterLink>
-        <button v-else class="hover:text-white" type="button" @click="onLogout">Log out</button>
         <RouterLink
           v-if="!loggedIn"
           class="rounded-xl bg-white/10 px-3 py-2 font-medium text-white ring-1 ring-white/15 hover:bg-white/15"
@@ -40,7 +40,7 @@ import { useRouter } from 'vue-router'
 import { authState, logout } from '../features/member/auth'
 
 const router = useRouter()
-const loggedIn = computed(() => authState.token.length > 0)
+const loggedIn = computed(() => authState.token.trim().length > 0)
 
 async function onLogout() {
   await logout()

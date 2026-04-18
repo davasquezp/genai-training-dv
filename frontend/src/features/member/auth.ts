@@ -23,21 +23,60 @@ type AuthResponse = {
 const TOKEN_KEY = 'latinVibe.auth.token'
 const MEMBER_KEY = 'latinVibe.auth.member'
 
+function authStorage(): Storage {
+  // In dev, avoid sticky logins across new tabs/sessions (localStorage survives restarts).
+  // Production keeps localStorage so users stay signed in across browser restarts.
+  return import.meta.env.DEV ? sessionStorage : localStorage
+}
+
+function storageGet(key: string): string | null {
+  try {
+    return authStorage().getItem(key)
+  } catch {
+    return null
+  }
+}
+
+function storageSet(key: string, value: string): void {
+  try {
+    authStorage().setItem(key, value)
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function storageRemove(key: string): void {
+  try {
+    authStorage().removeItem(key)
+  } catch {
+    // ignore
+  }
+}
+
+function parseMember(raw: string | null): Member | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as Member
+  } catch {
+    return null
+  }
+}
+
+function readInitialAuth(): { token: string; member: Member | null } {
+  const token = (storageGet(TOKEN_KEY) ?? '').trim()
+  const member = parseMember(storageGet(MEMBER_KEY))
+  if (!token) {
+    storageRemove(TOKEN_KEY)
+    storageRemove(MEMBER_KEY)
+    return { token: '', member: null }
+  }
+  return { token, member }
+}
+
 export const authState = reactive<{
   token: string
   member: Member | null
-}>({
-  token: localStorage.getItem(TOKEN_KEY) ?? '',
-  member: (() => {
-    const raw = localStorage.getItem(MEMBER_KEY)
-    if (!raw) return null
-    try {
-      return JSON.parse(raw) as Member
-    } catch {
-      return null
-    }
-  })(),
-})
+}>(readInitialAuth())
 
 function apiBaseUrl(): string {
   const raw = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
@@ -49,13 +88,18 @@ export function getToken(): string {
 }
 
 export function setToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token)
-  authState.token = token
+  const trimmed = token.trim()
+  if (!trimmed) {
+    clearAuth()
+    return
+  }
+  storageSet(TOKEN_KEY, trimmed)
+  authState.token = trimmed
 }
 
 export function clearAuth() {
-  localStorage.removeItem(TOKEN_KEY)
-  localStorage.removeItem(MEMBER_KEY)
+  storageRemove(TOKEN_KEY)
+  storageRemove(MEMBER_KEY)
   authState.token = ''
   authState.member = null
 }
@@ -65,12 +109,41 @@ export function getCachedMember(): Member | null {
 }
 
 export function cacheMember(member: Member) {
-  localStorage.setItem(MEMBER_KEY, JSON.stringify(member))
+  storageSet(MEMBER_KEY, JSON.stringify(member))
   authState.member = member
 }
 
 export function isAuthenticated(): boolean {
-  return authState.token.length > 0
+  return authState.token.trim().length > 0
+}
+
+/**
+ * Validates a persisted token against the API and syncs member state.
+ * Clears auth when the server rejects the token (e.g. expired or rotated secret).
+ */
+export async function restoreSession(): Promise<void> {
+  const token = authState.token.trim()
+  if (!token) {
+    clearAuth()
+    return
+  }
+  const base = apiBaseUrl()
+  try {
+    const resp = await fetch(`${base}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (resp.status === 401) {
+      clearAuth()
+      return
+    }
+    if (!resp.ok) {
+      return
+    }
+    const member = (await resp.json()) as Member
+    cacheMember(member)
+  } catch {
+    // offline / server down — keep optimistic session
+  }
 }
 
 export function hasRole(role: MemberRole): boolean {

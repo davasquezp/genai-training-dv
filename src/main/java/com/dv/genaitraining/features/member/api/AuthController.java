@@ -7,7 +7,6 @@ import com.dv.genaitraining.features.member.domain.Member;
 import com.dv.genaitraining.shared.ids.MemberId;
 import com.dv.genaitraining.shared.security.TokenBlacklist;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Clock;
 import java.util.UUID;
 
 /**
@@ -32,15 +30,13 @@ public class AuthController {
   public AuthController(
       LoginMemberUseCase login,
       GetMemberUseCase getMember,
-      Clock clock,
-      TokenBlacklist tokenBlacklist,
-      @Value("${APP_JWT_SECRET:}") String secret
+      JwtService jwtService,
+      TokenBlacklist tokenBlacklist
   ) {
     this.login = login;
     this.getMember = getMember;
     this.tokenBlacklist = tokenBlacklist;
-    // 7 days default
-    this.jwtService = new JwtService(secret, clock, 7 * 24 * 3600);
+    this.jwtService = jwtService;
   }
 
   @PostMapping("/login")

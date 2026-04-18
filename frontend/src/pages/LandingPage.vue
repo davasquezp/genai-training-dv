@@ -153,7 +153,7 @@ import { authState, logout } from '../features/member/auth'
 import SiteHeader from '../components/SiteHeader.vue'
 
 const router = useRouter()
-const loggedIn = computed(() => authState.token.length > 0)
+const loggedIn = computed(() => authState.token.trim().length > 0)
 
 async function onLogout() {
   await logout()

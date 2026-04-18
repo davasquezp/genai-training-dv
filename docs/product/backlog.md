@@ -34,4 +34,5 @@ Ordered roughly by “value / effort” for early-stage learning.
 ## 9) Monetization foundations
 - Define community tiers (features + limits) and an upgrade path.
 - Add commission-based ticketing integration for events (festivals/workshops) once community core is validated.
+- Implement: Checkout, Stripe en Tap with testing environements architecture that will allow me to process test payments through all three when developing and to sitch to the right one chose as a configurable env variable in prod
 

@@ -3,8 +3,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
-import { authHeader, getCachedMember, hasRole, isAuthenticated } from '../features/member/auth'
 import { getCommunity, type Community } from '../features/community/api'
+import { getMyDancer } from '../features/dancer/api'
+import { authHeader, hasRole, isAuthenticated } from '../features/member/auth'
 
 type MockEvent = {
   title: string
@@ -52,8 +53,7 @@ async function joinCommunity() {
   if (!community.value) return
   joinError.value = ''
 
-  const member = getCachedMember()
-  if (!member) {
+  if (!isAuthenticated()) {
     joinError.value = 'Please login first.'
     return
   }
@@ -66,12 +66,18 @@ async function joinCommunity() {
 
   joining.value = true
   try {
+    const dancer = await getMyDancer()
+    if (!dancer) {
+      joinError.value = 'No dancer profile yet. Open My profile and activate your dancer account first.'
+      return
+    }
+
     const base = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()?.replace(/\/+$/, '') ?? ''
     const resp = await fetch(`${base}/api/community-memberships`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader() },
       body: JSON.stringify({
-        dancerId: member.id,
+        dancerId: dancer.id,
         communityId: communityUuid,
       }),
     })

@@ -1,6 +1,5 @@
 package com.dv.genaitraining.shared;
 
-import com.dv.genaitraining.features.member.api.AuthController;
 import com.dv.genaitraining.features.member.application.JwtService;
 import com.dv.genaitraining.features.member.domain.MemberRole;
 import com.dv.genaitraining.shared.security.TokenBlacklist;
@@ -33,11 +32,9 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
-      AuthController authController,
+      JwtService jwtService,
       TokenBlacklist tokenBlacklist
   ) throws Exception {
-    JwtService jwtService = authController.jwtService();
-
     http
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())

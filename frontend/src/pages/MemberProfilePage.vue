@@ -280,7 +280,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
-import { authHeader, cacheMember, fetchMe, getCachedMember, hasRole, isAuthenticated, updateMyProfile } from '../features/member/auth'
+import { authHeader, cacheMember, fetchMe, getCachedMember, hasRole, isAuthenticated, setToken, updateMyProfile } from '../features/member/auth'
 import { COUNTRIES, type Country } from '../data/countries'
 
 type DancerMe = {
@@ -395,9 +395,11 @@ async function activateDancer() {
       const text = await resp.text().catch(() => '')
       throw new Error(text || `Activation failed (${resp.status})`)
     }
-    const updated = (await resp.json()) as any
-    cacheMember(updated)
-    member.value = updated
+    const data = (await resp.json()) as any
+    if (data?.token) setToken(String(data.token))
+    const updatedMember = data?.member ?? data
+    cacheMember(updatedMember)
+    member.value = updatedMember
     activatedMessage.value = 'Now you are a dancer!'
 
     // Give the backend a moment to create the dancer profile, then refresh.

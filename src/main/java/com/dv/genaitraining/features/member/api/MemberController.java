@@ -1,5 +1,6 @@
 package com.dv.genaitraining.features.member.api;
 
+import com.dv.genaitraining.features.member.application.JwtService;
 import com.dv.genaitraining.features.member.application.MemberService;
 import com.dv.genaitraining.features.member.application.SignupMemberUseCase;
 import com.dv.genaitraining.features.member.domain.Member;
@@ -24,10 +25,12 @@ import java.net.URI;
 public class MemberController {
   private final SignupMemberUseCase signup;
   private final MemberService memberService;
+  private final JwtService jwtService;
 
-  public MemberController(SignupMemberUseCase signup, MemberService memberService) {
+  public MemberController(SignupMemberUseCase signup, MemberService memberService, JwtService jwtService) {
     this.signup = signup;
     this.memberService = memberService;
+    this.jwtService = jwtService;
   }
 
   @PostMapping("/signup")
@@ -38,13 +41,14 @@ public class MemberController {
   }
 
   @PostMapping("/me/roles")
-  public ResponseEntity<MemberResponse> addRole(Authentication authentication, @Valid @RequestBody AddRoleRequest request) {
+  public ResponseEntity<AuthResponse> addRole(Authentication authentication, @Valid @RequestBody AddRoleRequest request) {
     if (authentication == null || authentication.getPrincipal() == null) {
       return ResponseEntity.status(401).build();
     }
     java.util.UUID memberId = java.util.UUID.fromString(String.valueOf(authentication.getPrincipal()));
     Member updated = memberService.addRole(new MemberId(memberId), request.role());
-    return ResponseEntity.ok(toResponse(updated));
+    String token = jwtService.issue(updated);
+    return ResponseEntity.ok(new AuthResponse(token, toResponse(updated)));
   }
 
   @PutMapping("/me/profile")
