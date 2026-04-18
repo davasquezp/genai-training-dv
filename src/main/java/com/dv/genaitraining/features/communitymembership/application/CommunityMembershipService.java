@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,7 +18,7 @@ import java.util.UUID;
  * Application service for community memberships.
  */
 @Service
-public class CommunityMembershipService implements AssociateDancerToCommunityUseCase, ListCommunityMembershipsUseCase {
+public class CommunityMembershipService implements AssociateDancerToCommunityUseCase {
   private final CommunityMembershipRepository membershipRepository;
   private final DancerRepository dancerRepository;
   private final CommunityRepository communityRepository;
@@ -69,17 +68,5 @@ public class CommunityMembershipService implements AssociateDancerToCommunityUse
           );
           return membershipRepository.save(membership);
         });
-  }
-
-  @Override
-  public List<CommunityMembership> listByCommunity(UUID communityIdValue) {
-    Objects.requireNonNull(communityIdValue, "communityId");
-    return membershipRepository.findByCommunityId(new CommunityId(communityIdValue));
-  }
-
-  @Override
-  public List<CommunityMembership> listByDancer(UUID dancerIdValue) {
-    Objects.requireNonNull(dancerIdValue, "dancerId");
-    return membershipRepository.findByDancerId(new DancerId(dancerIdValue));
   }
 }

@@ -42,31 +42,6 @@ async function readErrorText(resp: Response): Promise<string> {
   return await resp.text().catch(() => '')
 }
 
-export async function listCommunities(): Promise<Community[]> {
-  const base = apiBaseUrl()
-  const resp = await fetch(`${base}/api/communities`, {
-    headers: { ...authHeader() },
-  })
-  if (!resp.ok) {
-    const text = await readErrorText(resp)
-    throw new Error(text || `List communities failed (${resp.status})`)
-  }
-  return (await resp.json()) as Community[]
-}
-
-export async function getCommunity(id: string): Promise<Community | null> {
-  const base = apiBaseUrl()
-  const resp = await fetch(`${base}/api/communities/${encodeURIComponent(id)}`, {
-    headers: { ...authHeader() },
-  })
-  if (resp.status === 404) return null
-  if (!resp.ok) {
-    const text = await readErrorText(resp)
-    throw new Error(text || `Get community failed (${resp.status})`)
-  }
-  return (await resp.json()) as Community
-}
-
 export async function createCommunity(input: CreateCommunityInput): Promise<Community> {
   const base = apiBaseUrl()
   const resp = await fetch(`${base}/api/communities`, {

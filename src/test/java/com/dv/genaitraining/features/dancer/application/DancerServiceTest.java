@@ -46,12 +46,5 @@ class DancerServiceTest {
     assertThat(result.styles()).containsExactly(DanceStyle.SALSA, DanceStyle.BACHATA);
     assertThat(result.createdAt()).isEqualTo(NOW);
   }
-
-  @Test
-  void list_delegatesToRepository() {
-    when(dancerRepository.findAll()).thenReturn(List.of());
-    var service = new DancerService(dancerRepository, CLOCK);
-    assertThat(service.list()).isEmpty();
-  }
 }
 

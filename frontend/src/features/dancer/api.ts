@@ -11,17 +11,20 @@ function apiBaseUrl(): string {
   return raw && raw.length > 0 ? raw.replace(/\/+$/, '') : ''
 }
 
-/**
- * Loads the dancer profile for the authenticated member.
- * @returns null when no dancer row exists yet (activate dancer on profile first)
- */
-export async function getMyDancer(): Promise<DancerMe | null> {
+async function readErrorText(resp: Response): Promise<string> {
+  return await resp.text().catch(() => '')
+}
+
+export async function updateMyDancer(payload: { name: string; dancerRoles: string[] }): Promise<DancerMe> {
   const base = apiBaseUrl()
-  const resp = await fetch(`${base}/api/dancers/me`, { headers: { ...authHeader() } })
-  if (resp.status === 404) return null
+  const resp = await fetch(`${base}/api/dancers/me`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify(payload),
+  })
   if (!resp.ok) {
-    const text = await resp.text().catch(() => '')
-    throw new Error(text || `Load dancer failed (${resp.status})`)
+    const text = await readErrorText(resp)
+    throw new Error(text || `Save failed (${resp.status})`)
   }
   return (await resp.json()) as DancerMe
 }

@@ -16,7 +16,7 @@ import java.util.Objects;
  * Application service for dancer registration.
  */
 @Service
-public class DancerService implements RegisterDancerUseCase, ListDancersUseCase {
+public class DancerService implements RegisterDancerUseCase {
   private final DancerRepository dancerRepository;
   private final Clock clock;
 
@@ -47,11 +47,6 @@ public class DancerService implements RegisterDancerUseCase, ListDancersUseCase 
         now
     );
     return dancerRepository.save(dancer);
-  }
-
-  @Override
-  public List<Dancer> list() {
-    return dancerRepository.findAll();
   }
 }
 

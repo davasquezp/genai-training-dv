@@ -115,6 +115,7 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
+import { getDancersListPage } from '../features/pages/dancersList/api'
 
 type Dancer = {
   id: string
@@ -129,25 +130,13 @@ const dancers = ref<Dancer[]>([])
 const loading = ref(true)
 const error = ref('')
 
-function apiBaseUrl(): string {
-  const raw = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
-  return raw && raw.length > 0 ? raw.replace(/\/+$/, '') : 'http://localhost:8080'
-}
-
 async function fetchDancers() {
   loading.value = true
   error.value = ''
 
   try {
-    const base = apiBaseUrl()
-    const resp = await fetch(`${base}/api/dancers`)
-
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}`)
-    }
-
-    const data: Dancer[] = await resp.json()
-    dancers.value = data
+    const page = await getDancersListPage()
+    dancers.value = page.items
   } catch (err: any) {
     error.value = err.message || 'Failed to load dancers'
     console.error(err)

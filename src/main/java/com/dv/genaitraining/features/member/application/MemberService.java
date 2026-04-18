@@ -17,14 +17,13 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 /**
  * Application service for members.
  */
 @Service
-public class MemberService implements SignupMemberUseCase, LoginMemberUseCase, GetMemberUseCase {
+public class MemberService implements SignupMemberUseCase, LoginMemberUseCase {
   private final MemberRepository repository;
   private final EventBus eventBus;
   private final Clock clock;
@@ -166,12 +165,6 @@ public class MemberService implements SignupMemberUseCase, LoginMemberUseCase, G
       throw new InvalidCredentialsException();
     }
     return member;
-  }
-
-  @Override
-  public Optional<Member> get(MemberId id) {
-    Objects.requireNonNull(id, "id");
-    return repository.findById(id);
   }
 }
 

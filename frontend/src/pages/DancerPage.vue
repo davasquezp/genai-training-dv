@@ -87,6 +87,7 @@ import { onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
+import { getDancerDetailPage } from '../features/pages/dancerDetail/api'
 
 type Dancer = {
   id: string
@@ -103,29 +104,16 @@ const dancer = ref<Dancer | null>(null)
 const loading = ref(true)
 const error = ref('')
 
-function apiBaseUrl(): string {
-  const raw = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
-  return raw && raw.length > 0 ? raw.replace(/\/+$/, '') : 'http://localhost:8080'
-}
-
 async function fetchDancer() {
   loading.value = true
   error.value = ''
 
   try {
-    const base = apiBaseUrl()
-    const resp = await fetch(`${base}/api/dancers`)
-
-    if (!resp.ok) throw new Error('Failed to load data')
-
-    const allDancers: Dancer[] = await resp.json()
-    const found = allDancers.find(d => d.id === dancerId)
-
-    if (!found) {
+    const page = await getDancerDetailPage(dancerId)
+    if (!page) {
       throw new Error('Dancer not found')
     }
-
-    dancer.value = found
+    dancer.value = page.dancer
   } catch (err: any) {
     error.value = err.message || 'Could not load dancer profile'
     console.error(err)

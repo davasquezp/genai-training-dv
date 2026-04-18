@@ -148,7 +148,7 @@ export async function restoreSession(): Promise<void> {
   }
   const base = apiBaseUrl()
   try {
-    const resp = await fetch(`${base}/api/auth/me`, {
+    const resp = await fetch(`${base}/api/page/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     if (resp.status === 401) {
@@ -158,8 +158,8 @@ export async function restoreSession(): Promise<void> {
     if (!resp.ok) {
       return
     }
-    const member = (await resp.json()) as Member
-    cacheMember(member)
+    const data = (await resp.json()) as { member: Member }
+    cacheMember(data.member)
   } catch {
     // offline / server down — keep optimistic session
   }
@@ -221,15 +221,15 @@ export async function login(email: string, password: string): Promise<AuthRespon
 export async function fetchMe(): Promise<Member> {
   const base = apiBaseUrl()
   const token = getToken()
-  const resp = await fetch(`${base}/api/auth/me`, {
+  const resp = await fetch(`${base}/api/page/me`, {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!resp.ok) {
     throw new Error(`Me failed (${resp.status})`)
   }
-  const member = (await resp.json()) as Member
-  cacheMember(member)
-  return member
+  const data = (await resp.json()) as { member: Member }
+  cacheMember(data.member)
+  return data.member
 }
 
 export async function logout(): Promise<void> {

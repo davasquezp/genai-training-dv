@@ -4,10 +4,7 @@ import { RouterLink } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
 import type { Country } from '../data/countries'
-import { listCommunities, type Community } from '../features/community/api'
-import { listMembershipsByCommunity } from '../features/communityMembership/api'
-
-const COMMUNITY_UUID_RE = /^[0-9a-fA-F-]{36}$/
+import { getCommunitiesListPage } from '../features/pages/communitiesList/api'
 
 type CommunityLocation = {
   country: Country | null
@@ -17,37 +14,26 @@ type CommunityLocation = {
 
 const query = ref('')
 
+type Community = {
+  id: string
+  name: string
+  description: string
+  imageDataUrl: string | null
+  global: boolean
+  location: CommunityLocation | null
+  createdAt: string
+  dancerCount: number
+}
+
 const communities = ref<Community[]>([])
-/** Member (dancer) count per community id; `-1` means load failed */
-const dancerCountsByCommunityId = ref<Record<string, number>>({})
 const loading = ref(false)
 const loadError = ref('')
 
-async function loadDancerCountsForCommunities(rows: Community[]): Promise<Record<string, number>> {
-  const out: Record<string, number> = {}
-  await Promise.all(
-    rows.map(async (c) => {
-      if (!COMMUNITY_UUID_RE.test(c.id)) return
-      try {
-        const memberships = await listMembershipsByCommunity(c.id)
-        out[c.id] = memberships.length
-      } catch {
-        out[c.id] = -1
-      }
-    }),
-  )
-  return out
-}
-
 const dancerPillTextById = computed(() => {
-  const counts = dancerCountsByCommunityId.value
   const out: Record<string, string> = {}
   for (const c of communities.value) {
-    if (!COMMUNITY_UUID_RE.test(c.id)) continue
-    const n = counts[c.id]
-    if (n === undefined) out[c.id] = '…'
-    else if (n < 0) out[c.id] = '—'
-    else out[c.id] = `${n} ${n === 1 ? 'dancer' : 'dancers'}`
+    const n = c.dancerCount
+    out[c.id] = `${n} ${n === 1 ? 'dancer' : 'dancers'}`
   }
   return out
 })
@@ -85,15 +71,12 @@ function locationLabel(c: Community): string {
 async function refresh() {
   loadError.value = ''
   loading.value = true
-  dancerCountsByCommunityId.value = {}
   try {
-    const rows = await listCommunities()
-    communities.value = rows
-    dancerCountsByCommunityId.value = await loadDancerCountsForCommunities(rows)
+    const page = await getCommunitiesListPage()
+    communities.value = page.items
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Could not load communities.'
     communities.value = []
-    dancerCountsByCommunityId.value = {}
   } finally {
     loading.value = false
   }

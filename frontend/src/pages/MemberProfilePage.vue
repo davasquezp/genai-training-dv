@@ -280,6 +280,8 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
+import { updateMyDancer } from '../features/dancer/api'
+import { getMemberProfilePage } from '../features/pages/memberProfile/api'
 import { authHeader, cacheMember, fetchMe, getCachedMember, hasRole, isAuthenticated, setToken, updateMyProfile } from '../features/member/auth'
 import { COUNTRIES, type Country } from '../data/countries'
 
@@ -417,19 +419,16 @@ async function loadDancer() {
   dancerNotFound.value = false
   error.value = ''
   try {
-    const base = apiBaseUrl()
-    const resp = await fetch(`${base}/api/dancers/me`, { headers: { ...authHeader() } })
-    if (resp.status === 404) {
+    const page = await getMemberProfilePage()
+    member.value = page.member
+    cacheMember(page.member)
+    if (!page.dancer) {
       dancer.value = null
       dancerNotFound.value = true
       return
     }
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '')
-      throw new Error(text || `Load dancer failed (${resp.status})`)
-    }
-    const data = (await resp.json()) as DancerMe
-    dancer.value = data
+    const data = page.dancer
+    dancer.value = { id: data.id, name: data.name, dancerRoles: data.dancerRoles }
     dancerName.value = data.name ?? ''
     leadSelected.value = Array.isArray(data.dancerRoles) && data.dancerRoles.includes('LEAD')
     followerSelected.value = Array.isArray(data.dancerRoles) && data.dancerRoles.includes('FOLLOWER')
@@ -497,21 +496,10 @@ async function saveDancer() {
   dancerSaving.value = true
   error.value = ''
   try {
-    const base = apiBaseUrl()
-    const payload = {
+    const data = await updateMyDancer({
       name: dancerName.value.trim(),
       dancerRoles: dancerRoles.value,
-    }
-    const resp = await fetch(`${base}/api/dancers/me`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', ...authHeader() },
-      body: JSON.stringify(payload),
     })
-    if (!resp.ok) {
-      const text = await resp.text().catch(() => '')
-      throw new Error(text || `Save failed (${resp.status})`)
-    }
-    const data = (await resp.json()) as DancerMe
     dancer.value = data
     dancerName.value = data.name ?? ''
     leadSelected.value = Array.isArray(data.dancerRoles) && data.dancerRoles.includes('LEAD')

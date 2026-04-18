@@ -9,16 +9,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Application service for communities.
  */
 @Service
-public class CommunityService implements CreateCommunityUseCase, GetCommunityUseCase, ListCommunitiesUseCase {
+public class CommunityService implements CreateCommunityUseCase {
   private final CommunityRepository repository;
   private final Clock clock;
 
@@ -53,17 +50,6 @@ public class CommunityService implements CreateCommunityUseCase, GetCommunityUse
         Instant.now(clock)
     );
     return repository.save(community);
-  }
-
-  @Override
-  public Optional<Community> get(UUID id) {
-    Objects.requireNonNull(id, "id");
-    return repository.findById(new CommunityId(id));
-  }
-
-  @Override
-  public List<Community> list() {
-    return repository.findAll();
   }
 
   private static String normalizeImageDataUrl(String imageDataUrl) {

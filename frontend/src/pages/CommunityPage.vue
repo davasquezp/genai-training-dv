@@ -3,12 +3,24 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
-import { getCommunity, type Community } from '../features/community/api'
-import { listMembershipsByCommunity, type CommunityMembership } from '../features/communityMembership/api'
-import { getMyDancer } from '../features/dancer/api'
+import { getCommunityDetailPage } from '../features/pages/communityDetail/api'
 import { authHeader, hasRole, isAuthenticated } from '../features/member/auth'
 
 const COMMUNITY_UUID_RE = /^[0-9a-fA-F-]{36}$/
+
+type Community = {
+  id: string
+  name: string
+  description: string
+  imageDataUrl: string | null
+  global: boolean
+  location: {
+    country: { code: string; name: string } | null
+    region: string | null
+    city: string | null
+  } | null
+  createdAt: string
+}
 
 type MockEvent = {
   title: string
@@ -30,75 +42,42 @@ const canJoinCommunity = computed(() => isAuthenticated() && hasRole('DANCER'))
 const loading = ref(false)
 const loadError = ref('')
 const community = ref<Community | null>(null)
-
-const memberships = ref<CommunityMembership[]>([])
-const membershipsLoading = ref(false)
-const membershipsError = ref('')
+const dancerCount = ref(0)
 const myDancerId = ref<string | null>(null)
 
-const dancerCount = computed(() => memberships.value.length)
-
-function dancerIdsMatch(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase()
-}
-
-const alreadyMember = computed(() => {
-  const id = myDancerId.value
-  return id != null && memberships.value.some((m) => dancerIdsMatch(m.dancerId, id))
-})
-
-async function syncMembershipsForCommunity(c: Community) {
-  membershipsError.value = ''
-  if (!COMMUNITY_UUID_RE.test(c.id)) {
-    memberships.value = []
-    myDancerId.value = null
-    return
-  }
-  membershipsLoading.value = true
-  try {
-    memberships.value = await listMembershipsByCommunity(c.id)
-  } catch (e) {
-    memberships.value = []
-    membershipsError.value = e instanceof Error ? e.message : 'Could not load members.'
-  } finally {
-    membershipsLoading.value = false
-  }
-  if (isAuthenticated() && hasRole('DANCER')) {
-    try {
-      const d = await getMyDancer()
-      myDancerId.value = d?.id ?? null
-    } catch {
-      myDancerId.value = null
-    }
-  } else {
-    myDancerId.value = null
-  }
-}
+const viewerAlreadyMember = ref(false)
 
 async function refresh() {
   const id = communityId.value.trim()
   if (!id) {
     community.value = null
-    memberships.value = []
+    dancerCount.value = 0
     myDancerId.value = null
-    membershipsError.value = ''
+    viewerAlreadyMember.value = false
     return
   }
   loadError.value = ''
   loading.value = true
-  memberships.value = []
-  myDancerId.value = null
-  membershipsError.value = ''
   try {
-    community.value = await getCommunity(id)
-    if (community.value) {
-      await syncMembershipsForCommunity(community.value)
+    const page = await getCommunityDetailPage(id)
+    if (!page) {
+      loadError.value = 'Community not found.'
+      community.value = null
+      dancerCount.value = 0
+      myDancerId.value = null
+      viewerAlreadyMember.value = false
+      return
     }
+    community.value = page.community
+    dancerCount.value = page.dancerCount
+    myDancerId.value = page.viewer.myDancerId
+    viewerAlreadyMember.value = page.viewer.alreadyMember
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Could not load community.'
     community.value = null
-    memberships.value = []
+    dancerCount.value = 0
     myDancerId.value = null
+    viewerAlreadyMember.value = false
   } finally {
     loading.value = false
   }
@@ -124,8 +103,8 @@ async function joinCommunity() {
 
   joining.value = true
   try {
-    const dancer = await getMyDancer()
-    if (!dancer) {
+    const dancerId = myDancerId.value
+    if (!dancerId) {
       joinError.value = 'No dancer profile yet. Open My profile and activate your dancer account first.'
       return
     }
@@ -135,7 +114,7 @@ async function joinCommunity() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeader() },
       body: JSON.stringify({
-        dancerId: dancer.id,
+        dancerId,
         communityId: communityUuid,
       }),
     })
@@ -143,7 +122,7 @@ async function joinCommunity() {
       const text = await resp.text().catch(() => '')
       throw new Error(text || `Join failed (${resp.status})`)
     }
-    await syncMembershipsForCommunity(community.value)
+    await refresh()
   } catch (e: any) {
     joinError.value = e?.message || 'Could not join community.'
   } finally {
@@ -243,9 +222,7 @@ watch(communityId, refresh)
             </p>
             <p v-else class="mt-2 text-sm text-rose-200">Community not found.</p>
             <p v-if="community && !loading && !loadError" class="mt-1 text-sm text-slate-300">
-              <template v-if="membershipsLoading">Loading member count…</template>
-              <template v-else-if="membershipsError">{{ membershipsError }}</template>
-              <template v-else-if="COMMUNITY_UUID_RE.test(community.id)">
+              <template v-if="COMMUNITY_UUID_RE.test(community.id)">
                 {{ dancerCount }} {{ dancerCount === 1 ? 'dancer' : 'dancers' }} in this community
               </template>
               <template v-else>Member count is not available for this community id.</template>
@@ -257,7 +234,7 @@ watch(communityId, refresh)
         <div v-if="community" class="mt-6 space-y-6">
           <div v-if="canJoinCommunity" class="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
             <div
-              v-if="alreadyMember"
+              v-if="viewerAlreadyMember"
               class="rounded-xl bg-emerald-500/10 p-4 ring-1 ring-emerald-400/25"
             >
               <div class="text-sm font-semibold text-emerald-200">You belong to this community.</div>

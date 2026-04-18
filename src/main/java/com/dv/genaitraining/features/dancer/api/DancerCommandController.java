@@ -1,55 +1,38 @@
 package com.dv.genaitraining.features.dancer.api;
 
-import com.dv.genaitraining.features.dancer.application.ListDancersUseCase;
 import com.dv.genaitraining.features.dancer.application.RegisterDancerUseCase;
 import com.dv.genaitraining.features.dancer.domain.DanceStyle;
 import com.dv.genaitraining.features.dancer.domain.Dancer;
 import com.dv.genaitraining.features.dancer.domain.DancerRepository;
 import com.dv.genaitraining.features.dancer.domain.Role;
+import com.dv.genaitraining.shared.ids.MemberId;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dv.genaitraining.shared.ids.MemberId;
-
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * REST adapter for dancer registration.
+ * Write-only REST adapter for dancer registration and profile updates.
  */
 @RestController
 @RequestMapping("/api/dancers")
-public class DancerController {
+public class DancerCommandController {
   private final RegisterDancerUseCase register;
-  private final ListDancersUseCase list;
   private final DancerRepository dancerRepository;
 
-  /**
-   * Creates the controller.
-   *
-   * @param register register use-case
-   * @param list list use-case
-   */
-  public DancerController(RegisterDancerUseCase register, ListDancersUseCase list, DancerRepository dancerRepository) {
+  public DancerCommandController(RegisterDancerUseCase register, DancerRepository dancerRepository) {
     this.register = register;
-    this.list = list;
     this.dancerRepository = dancerRepository;
   }
 
-  /**
-   * Registers dancer interest.
-   *
-   * @param request request
-   * @return created dancer
-   */
   @PostMapping
   public ResponseEntity<DancerResponse> register(@Valid @RequestBody RegisterDancerRequest request) {
     List<Role> roles = parseRoles(request.role());
@@ -61,28 +44,6 @@ public class DancerController {
     return ResponseEntity
         .created(URI.create("/api/dancers/" + created.id().value()))
         .body(toResponse(created));
-  }
-
-  /**
-   * Lists dancers (debug/admin).
-   *
-   * @return dancers
-   */
-  @GetMapping
-  public List<DancerResponse> list() {
-    return list.list().stream().map(DancerController::toResponse).toList();
-  }
-
-  @GetMapping("/me")
-  public ResponseEntity<DancerMeResponse> me(Authentication authentication) {
-    MemberId memberId = memberId(authentication);
-    if (memberId == null) {
-      return ResponseEntity.status(401).build();
-    }
-    return dancerRepository.findByMemberId(memberId)
-        .map(DancerController::toMeResponse)
-        .map(ResponseEntity::ok)
-        .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @PutMapping("/me")
@@ -149,4 +110,3 @@ public class DancerController {
     };
   }
 }
-
