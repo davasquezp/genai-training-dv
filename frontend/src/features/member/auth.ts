@@ -20,6 +20,13 @@ type AuthResponse = {
   member: Member
 }
 
+type ApiError = {
+  timestamp?: string
+  status?: number
+  code?: string
+  message?: string
+}
+
 const TOKEN_KEY = 'latinVibe.auth.token'
 const MEMBER_KEY = 'latinVibe.auth.member'
 
@@ -81,6 +88,18 @@ export const authState = reactive<{
 function apiBaseUrl(): string {
   const raw = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim()
   return raw && raw.length > 0 ? raw.replace(/\/+$/, '') : ''
+}
+
+async function readErrorText(resp: Response): Promise<string> {
+  return await resp.text().catch(() => '')
+}
+
+async function readApiError(resp: Response): Promise<ApiError | null> {
+  try {
+    return (await resp.json()) as ApiError
+  } catch {
+    return null
+  }
 }
 
 export function getToken(): string {
@@ -159,7 +178,18 @@ export async function signup(email: string, name: string, phone: string, passwor
     body: JSON.stringify({ email, name, phone, password }),
   })
   if (!resp.ok) {
-    const text = await resp.text().catch(() => '')
+    if (resp.status === 409) {
+      const apiError = await readApiError(resp)
+      if (apiError?.code === 'MEMBER_EMAIL_ALREADY_EXISTS') {
+        throw new Error('That email is already registered. Try logging in instead.')
+      }
+      if (apiError?.code === 'MEMBER_PHONE_ALREADY_EXISTS') {
+        throw new Error('That phone number is already registered. Try logging in instead.')
+      }
+      throw new Error(apiError?.message || 'Account already exists.')
+    }
+    const apiError = await readApiError(resp)
+    const text = apiError?.message || (await readErrorText(resp))
     throw new Error(text || `Signup failed (${resp.status})`)
   }
   const member = (await resp.json()) as Member
@@ -175,7 +205,11 @@ export async function login(email: string, password: string): Promise<AuthRespon
     body: JSON.stringify({ email, password }),
   })
   if (!resp.ok) {
-    const text = await resp.text().catch(() => '')
+    if (resp.status === 401) {
+      throw new Error('Invalid email or password.')
+    }
+    const apiError = await readApiError(resp)
+    const text = apiError?.message || (await readErrorText(resp))
     throw new Error(text || `Login failed (${resp.status})`)
   }
   const data = (await resp.json()) as AuthResponse

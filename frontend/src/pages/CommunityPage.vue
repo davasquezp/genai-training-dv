@@ -4,8 +4,11 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import SiteHeader from '../components/SiteHeader.vue'
 import { getCommunity, type Community } from '../features/community/api'
+import { listMembershipsByCommunity, type CommunityMembership } from '../features/communityMembership/api'
 import { getMyDancer } from '../features/dancer/api'
 import { authHeader, hasRole, isAuthenticated } from '../features/member/auth'
+
+const COMMUNITY_UUID_RE = /^[0-9a-fA-F-]{36}$/
 
 type MockEvent = {
   title: string
@@ -28,19 +31,74 @@ const loading = ref(false)
 const loadError = ref('')
 const community = ref<Community | null>(null)
 
+const memberships = ref<CommunityMembership[]>([])
+const membershipsLoading = ref(false)
+const membershipsError = ref('')
+const myDancerId = ref<string | null>(null)
+
+const dancerCount = computed(() => memberships.value.length)
+
+function dancerIdsMatch(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase()
+}
+
+const alreadyMember = computed(() => {
+  const id = myDancerId.value
+  return id != null && memberships.value.some((m) => dancerIdsMatch(m.dancerId, id))
+})
+
+async function syncMembershipsForCommunity(c: Community) {
+  membershipsError.value = ''
+  if (!COMMUNITY_UUID_RE.test(c.id)) {
+    memberships.value = []
+    myDancerId.value = null
+    return
+  }
+  membershipsLoading.value = true
+  try {
+    memberships.value = await listMembershipsByCommunity(c.id)
+  } catch (e) {
+    memberships.value = []
+    membershipsError.value = e instanceof Error ? e.message : 'Could not load members.'
+  } finally {
+    membershipsLoading.value = false
+  }
+  if (isAuthenticated() && hasRole('DANCER')) {
+    try {
+      const d = await getMyDancer()
+      myDancerId.value = d?.id ?? null
+    } catch {
+      myDancerId.value = null
+    }
+  } else {
+    myDancerId.value = null
+  }
+}
+
 async function refresh() {
   const id = communityId.value.trim()
   if (!id) {
     community.value = null
+    memberships.value = []
+    myDancerId.value = null
+    membershipsError.value = ''
     return
   }
   loadError.value = ''
   loading.value = true
+  memberships.value = []
+  myDancerId.value = null
+  membershipsError.value = ''
   try {
     community.value = await getCommunity(id)
+    if (community.value) {
+      await syncMembershipsForCommunity(community.value)
+    }
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : 'Could not load community.'
     community.value = null
+    memberships.value = []
+    myDancerId.value = null
   } finally {
     loading.value = false
   }
@@ -59,7 +117,7 @@ async function joinCommunity() {
   }
 
   const communityUuid = community.value.id
-  if (!/^[0-9a-fA-F-]{36}$/.test(communityUuid)) {
+  if (!COMMUNITY_UUID_RE.test(communityUuid)) {
     joinError.value = 'This community has a non-UUID id and cannot be joined yet.'
     return
   }
@@ -85,6 +143,7 @@ async function joinCommunity() {
       const text = await resp.text().catch(() => '')
       throw new Error(text || `Join failed (${resp.status})`)
     }
+    await syncMembershipsForCommunity(community.value)
   } catch (e: any) {
     joinError.value = e?.message || 'Could not join community.'
   } finally {
@@ -183,27 +242,44 @@ watch(communityId, refresh)
               {{ locationLabel(community) }} • Created {{ new Date(community.createdAt).toLocaleDateString() }}
             </p>
             <p v-else class="mt-2 text-sm text-rose-200">Community not found.</p>
+            <p v-if="community && !loading && !loadError" class="mt-1 text-sm text-slate-300">
+              <template v-if="membershipsLoading">Loading member count…</template>
+              <template v-else-if="membershipsError">{{ membershipsError }}</template>
+              <template v-else-if="COMMUNITY_UUID_RE.test(community.id)">
+                {{ dancerCount }} {{ dancerCount === 1 ? 'dancer' : 'dancers' }} in this community
+              </template>
+              <template v-else>Member count is not available for this community id.</template>
+            </p>
           </div>
           <RouterLink class="text-sm text-slate-200 hover:text-white" to="/communities">Back</RouterLink>
         </div>
 
         <div v-if="community" class="mt-6 space-y-6">
           <div v-if="canJoinCommunity" class="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div class="text-sm font-semibold text-white">Join this community</div>
-                <div class="mt-1 text-xs text-slate-300">Visible only to authenticated dancers.</div>
-              </div>
-              <button
-                type="button"
-                class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                :disabled="joining"
-                @click="joinCommunity"
-              >
-                {{ joining ? 'Joining…' : 'Join community' }}
-              </button>
+            <div
+              v-if="alreadyMember"
+              class="rounded-xl bg-emerald-500/10 p-4 ring-1 ring-emerald-400/25"
+            >
+              <div class="text-sm font-semibold text-emerald-200">You belong to this community.</div>
+              <div class="mt-1 text-xs text-slate-300">You're already listed among the dancers here.</div>
             </div>
-            <div v-if="joinError" class="mt-3 text-xs text-rose-200">{{ joinError }}</div>
+            <template v-else>
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div class="text-sm font-semibold text-white">Join this community</div>
+                  <div class="mt-1 text-xs text-slate-300">Visible only to authenticated dancers.</div>
+                </div>
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  :disabled="joining"
+                  @click="joinCommunity"
+                >
+                  {{ joining ? 'Joining…' : 'Join community' }}
+                </button>
+              </div>
+              <div v-if="joinError" class="mt-3 text-xs text-rose-200">{{ joinError }}</div>
+            </template>
           </div>
 
           <div class="overflow-hidden rounded-2xl bg-slate-950/40 ring-1 ring-white/10">
